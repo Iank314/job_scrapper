@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Scraper</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Backend SWE Job Scraper</h1>
+            <div class="auth-box" id="authBox"></div>
+        </div>
+        <div class="stats" id="stats"></div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="open">Open Jobs</button>
+            <button class="tab" data-tab="applied" id="appliedTab">Applied</button>
+            <button class="tab" data-tab="trashed" id="trashedTab">Trash</button>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="search" placeholder="Search by company or title...">
+            <select id="category">
+                <option value="All">All Categories</option>
+                <option value="Fall 2026 Intern">Fall 2026 Intern</option>
+                <option value="Spring 2027 Intern">Spring 2027 Intern</option>
+                <option value="Summer 2027 Intern">Summer 2027 Intern</option>
+                <option value="Summer 2027 New Grad">Summer 2027 New Grad</option>
+                <option value="Intern (Uncategorized)">Intern (Uncategorized)</option>
+                <option value="New Grad (Uncategorized)">New Grad (Uncategorized)</option>
+            </select>
+            <label>
+                <input type="checkbox" id="activeOnly" checked> Active only
+            </label>
+            <label class="new-toggle" id="newOnlyLabel">
+                <input type="checkbox" id="newOnly"> New only
+            </label>
+        </div>
+
+        <div class="job-count" id="jobCount"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th data-sort="company">Company</th>
+                    <th data-sort="title">Title</th>
+                    <th data-sort="location">Location</th>
+                    <th data-sort="category">Category</th>
+                    <th>Link</th>
+                    <th data-sort="date_posted">Posted</th>
+                    <th id="actionCol">Action</th>
+                </tr>
+            </thead>
+            <tbody id="jobsBody"></tbody>
+        </table>
+
+        <div class="empty-state" id="emptyState" style="display:none">
+            <p>No jobs found</p>
+            <p>Try adjusting your filters or run the scraper first.</p>
+        </div>
+    </div>
+
+    <!-- Login modal -->
+    <div class="modal" id="loginModal" style="display:none">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <p class="hint">Enter your password to mark jobs as applied.</p>
+            <input type="password" id="loginPassword" placeholder="Password" autofocus>
+            <div class="modal-actions">
+                <button class="btn primary" id="loginSubmit">Log in</button>
+                <button class="btn" id="loginCancel">Cancel</button>
+            </div>
+            <div class="error" id="loginError"></div>
+        </div>
+    </div>
+
+    <script>
+        let allJobs = [];
+        let sortCol = "date_posted";
+        let sortAsc = false;
+        let currentTab = "open";   // "open" | "applied" | "trashed"
+        let authed = false;
+
+        function categoryClass(cat) {
+            if (!cat) return "uncategorized";
+            if (cat.includes("Fall 2026")) return "fall-2026";
+            if (cat.includes("Spring 2027")) return "spring-2027";
+            if (cat.includes("Summer 2027") && cat.includes("New Grad")) return "new-grad";
+            if (cat.includes("Summer 2027")) return "summer-2027";
+            if (cat.includes("New Grad")) return "new-grad";
+            return "uncategorized";
+        }
+
+        function renderJobs(jobs) {
+            const tbody = document.getElementById("jobsBody");
+            const empty = document.getElementById("emptyState");
+
+            if (jobs.length === 0) {
+                tbody.innerHTML = "";
+                empty.style.display = "block";
+                document.getElementById("jobCount").textContent = "";
+                return;
+            }
+
+            empty.style.display = "none";
+            document.getElementById("jobCount").textContent = `Showing ${jobs.length} job${jobs.length !== 1 ? 's' : ''}`;
+
+            // Build per-row actions based on which tab we're on.
+            // Open:    [Applied] [Trash]
+            // Applied: [Unmark]
+            // Trash:   [Restore]
+            function actionsFor(id) {
+                if (!authed) return "";
+                if (currentTab === "open") {
+                    return `
+                        <button class="btn-row btn-apply" data-act="apply" data-id="${id}">Applied</button>
+                        <button class="btn-row btn-trash" data-act="trash" data-id="${id}">Trash</button>
+                    `;
+                }
+                if (currentTab === "applied") {
+                    return `<button class="btn-row btn-unapply" data-act="unapply" data-id="${id}">Unmark</button>`;
+                }
+                // trashed
+                return `<button class="btn-row btn-restore" data-act="untrash" data-id="${id}">Restore</button>`;
+            }
+
+            tbody.innerHTML = jobs.map(j => `
+                <tr data-id="${j.id}">
+                    <td>${esc(j.company)}</td>
+                    <td>${esc(j.title)}</td>
+                    <td>${esc(j.location || "—")}</td>
+                    <td><span class="category-badge ${categoryClass(j.category)}">${esc(j.category)}</span></td>
+                    <td><a href="${esc(j.url)}" target="_blank" rel="noopener">Apply</a></td>
+                    <td>${j.date_posted ? j.date_posted.slice(0, 10) : "—"}</td>
+                    <td class="actions-cell">${actionsFor(j.id)}</td>
+                </tr>
+            `).join("");
+
+            // Wire row action buttons
+            tbody.querySelectorAll(".btn-row").forEach(btn => {
+                btn.addEventListener("click", onRowAction);
+            });
+        }
+
+        function esc(str) {
+            if (!str) return "";
+            const d = document.createElement("div");
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function sortJobs(jobs) {
+            return [...jobs].sort((a, b) => {
+                let va = (a[sortCol] || "").toString().toLowerCase();
+                let vb = (b[sortCol] || "").toString().toLowerCase();
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        async function fetchJobs() {
+            let resp, data;
+            if (currentTab === "open") {
+                const cat = document.getElementById("category").value;
+                const search = document.getElementById("search").value;
+                const active = document.getElementById("activeOnly").checked;
+                const newOnly = document.getElementById("newOnly").checked;
+                const params = new URLSearchParams({
+                    category: cat,
+                    search: search,
+                    active_only: active,
+                    new_only: newOnly,
+                });
+                resp = await fetch("/api/jobs?" + params);
+                data = await resp.json();
+                authed = !!data.authed;
+                renderAuth();
+
+                allJobs = data.jobs;
+                renderJobs(sortJobs(allJobs));
+
+                const stats = data.stats || {};
+                const statsEl = document.getElementById("stats");
+                let parts = [
+                    `<span>${stats.total || 0} open</span>`,
+                    `<span>${stats.applied || 0} applied</span>`,
+                    `<span>${stats.trashed || 0} trashed</span>`,
+                ];
+                for (const [cat, count] of Object.entries(stats.categories || {})) {
+                    parts.push(`<span>${cat}: ${count}</span>`);
+                }
+                statsEl.innerHTML = parts.join(" ");
+            } else {
+                // Applied or Trashed tab
+                const search = document.getElementById("search").value;
+                const params = new URLSearchParams({ search });
+                const endpoint = currentTab === "applied"
+                    ? "/api/jobs/applied"
+                    : "/api/jobs/trashed";
+                resp = await fetch(`${endpoint}?${params}`);
+                if (resp.status === 401) {
+                    allJobs = [];
+                    renderJobs([]);
+                    document.getElementById("jobCount").textContent = `Log in to see ${currentTab} jobs.`;
+                    return;
+                }
+                data = await resp.json();
+                allJobs = data.jobs;
+                renderJobs(sortJobs(allJobs));
+            }
+        }
+
+        async function onRowAction(ev) {
+            const btn = ev.currentTarget;
+            const id = btn.dataset.id;
+            const act = btn.dataset.act;  // apply | unapply | trash | untrash
+            const resp = await fetch(`/api/jobs/${id}/${act}`, { method: "POST" });
+            if (resp.status === 401) {
+                openLogin();
+                return;
+            }
+            if (!resp.ok) {
+                alert("Action failed");
+                return;
+            }
+            // Optimistic: drop the row locally
+            allJobs = allJobs.filter(j => String(j.id) !== String(id));
+            renderJobs(sortJobs(allJobs));
+            // Refresh stats when on the open tab so the header counts update
+            if (currentTab === "open") fetchJobs();
+        }
+
+        // ---------- Auth ----------
+
+        function renderAuth() {
+            const box = document.getElementById("authBox");
+            if (authed) {
+                box.innerHTML = `<button class="btn" id="logoutBtn">Log out</button>`;
+                document.getElementById("logoutBtn").addEventListener("click", logout);
+            } else {
+                box.innerHTML = `<button class="btn primary" id="loginBtn">Log in</button>`;
+                document.getElementById("loginBtn").addEventListener("click", openLogin);
+            }
+        }
+
+        function openLogin() {
+            document.getElementById("loginModal").style.display = "flex";
+            document.getElementById("loginPassword").value = "";
+            document.getElementById("loginError").textContent = "";
+            document.getElementById("loginPassword").focus();
+        }
+
+        function closeLogin() {
+            document.getElementById("loginModal").style.display = "none";
+        }
+
+        async function submitLogin() {
+            const pw = document.getElementById("loginPassword").value;
+            const resp = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: pw }),
+            });
+            if (resp.ok) {
+                authed = true;
+                closeLogin();
+                renderAuth();
+                fetchJobs();
+            } else {
+                document.getElementById("loginError").textContent = "Invalid password";
+            }
+        }
+
+        async function logout() {
+            await fetch("/api/logout", { method: "POST" });
+            authed = false;
+            renderAuth();
+            // If on applied tab, go back to open
+            if (currentTab === "applied") switchTab("open");
+            else fetchJobs();
+        }
+
+        // ---------- Tabs ----------
+
+        function switchTab(name) {
+            currentTab = name;
+            document.querySelectorAll(".tab").forEach(t => {
+                t.classList.toggle("active", t.dataset.tab === name);
+            });
+            // Filters only make sense for the open tab
+            const isOpen = name === "open";
+            document.getElementById("category").style.display = isOpen ? "" : "none";
+            document.getElementById("activeOnly").parentElement.style.display = isOpen ? "" : "none";
+            document.getElementById("newOnlyLabel").style.display = isOpen ? "" : "none";
+            fetchJobs();
+        }
+
+        // ---------- Event wiring ----------
+
+        document.querySelectorAll(".tab").forEach(t => {
+            t.addEventListener("click", () => {
+                const name = t.dataset.tab;
+                if ((name === "applied" || name === "trashed") && !authed) {
+                    openLogin();
+                    return;
+                }
+                switchTab(name);
+            });
+        });
+
+        let debounceTimer;
+        document.getElementById("search").addEventListener("input", () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchJobs, 300);
+        });
+        document.getElementById("category").addEventListener("change", fetchJobs);
+        document.getElementById("activeOnly").addEventListener("change", fetchJobs);
+        document.getElementById("newOnly").addEventListener("change", fetchJobs);
+
+        document.querySelectorAll("th[data-sort]").forEach(th => {
+            th.addEventListener("click", () => {
+                const col = th.dataset.sort;
+                if (sortCol === col) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortCol = col;
+                    sortAsc = true;
+                }
+                renderJobs(sortJobs(allJobs));
+            });
+        });
+
+        document.getElementById("loginSubmit").addEventListener("click", submitLogin);
+        document.getElementById("loginCancel").addEventListener("click", closeLogin);
+        document.getElementById("loginPassword").addEventListener("keydown", e => {
+            if (e.key === "Enter") submitLogin();
+            if (e.key === "Escape") closeLogin();
+        });
+
+        // Mark current time as "seen" so future "New only" has a baseline.
+        async function markSeen() {
+            await fetch("/api/mark-seen", { method: "POST" });
+        }
+
+        // Initial load
+        (async function init() {
+            const r = await fetch("/api/auth");
+            const d = await r.json();
+            authed = !!d.authed;
+            renderAuth();
+            await fetchJobs();
+            // Set the "last seen" watermark after first load so next visit
+            // can use "New only" to see the delta.
+            markSeen();
+        })();
+    </script>
+</body>
+</html>

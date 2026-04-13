@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "WebSearch",
+      "WebFetch(domain:careers.zoom.us)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('trackinglink jobs:', len\\(d.get\\('jobs',[]\\)\\)\\)\")",
+      "WebFetch(domain:www.shopify.com)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('grammarly jobs:', len\\(d.get\\('jobs',[]\\)\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('superhuman jobs:', len\\(d.get\\('jobs',[]\\)\\)\\)\")",
+      "Bash(python:*)",
+      "Bash(echo \"GH a16zcrypto: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/a16zcrypto/jobs'\\)\")",
+      "Bash(echo \"GH a16z: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/a16z/jobs'\\)\")",
+      "Bash(echo \"LV a16zcrypto: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/a16zcrypto'\\)\")",
+      "Bash(echo \"LV a16z: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/a16z'\\)\")",
+      "Bash(echo \"AS a16z: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.ashbyhq.com/posting-api/job-board/a16z'\\)\")",
+      "Bash(echo \"GH solanalabs: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/solanalabs/jobs'\\)\")",
+      "Bash(echo \"GH anza: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/anza/jobs'\\)\")",
+      "Bash(echo \"LV solanalabs: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/solanalabs'\\)\")",
+      "Bash(echo \"LV anza: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/anza'\\)\")",
+      "Bash(echo \"AS solanalabs: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.ashbyhq.com/posting-api/job-board/solanalabs'\\)\")",
+      "Bash(echo \"GH uniswaplabs: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/uniswaplabs/jobs'\\)\")",
+      "Bash(echo \"GH uniswap: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/uniswap/jobs'\\)\")",
+      "Bash(echo \"LV uniswap: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/uniswap'\\)\")",
+      "Bash(echo \"AS uniswap: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.ashbyhq.com/posting-api/job-board/uniswap'\\)\")",
+      "Bash(echo \"Polygon AS polygon-labs: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.ashbyhq.com/posting-api/job-board/polygon-labs'\\)\")",
+      "Bash(echo \"Coda LV Coda: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/Coda'\\)\")",
+      "Bash(echo \"Coda LV coda: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/coda'\\)\")",
+      "Bash(echo \"dYdX GH dydx: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/dydx/jobs'\\)\")",
+      "Bash(echo \"Radix GH radixexperienced: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/radixexperienced/jobs'\\)\")",
+      "Bash(echo \"Radix GH radixuniversity: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://boards-api.greenhouse.io/v1/boards/radixuniversity/jobs'\\)\")",
+      "Bash(echo \"Paradigm GH company: $\\(curl -s 'https://boards-api.greenhouse.io/v1/boards/paradigm/jobs')",
+      "Bash(echo \"Vast GH: $\\(curl -s 'https://boards-api.greenhouse.io/v1/boards/vast/jobs')",
+      "Bash(echo \"Paradigm AS paradigm-xyz: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.ashbyhq.com/posting-api/job-board/paradigm-xyz'\\)\")",
+      "Bash(echo \"Paradigm AS Paradigm: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.ashbyhq.com/posting-api/job-board/Paradigm'\\)\")",
+      "Bash(echo \"Hadrian LV hadrian: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/hadrian'\\)\")",
+      "Bash(echo \"Hadrian AS hadrian-automation: $\\(curl -s 'https://api.ashbyhq.com/posting-api/job-board/hadrian-automation')",
+      "Bash(gh api:*)",
+      "Bash(pip install:*)"
+    ]
+  }
+}

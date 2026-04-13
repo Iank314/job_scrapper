@@ -1,0 +1,1202 @@
+companies:
+- name: Google
+  ats: playwright
+  url: https://www.google.com/about/careers/applications/jobs/results/?q=%22software%20engineer%22%20intern
+- name: Meta
+  ats: playwright
+  url: https://www.metacareers.com/jobs?roles[0]=Internship&sub_teams[0]=Software%20Engineering
+- name: Amazon
+  ats: playwright
+  url: https://www.amazon.jobs/en/search?base_query=software+engineer+intern&loc_query=United+States
+- name: Microsoft
+  ats: playwright
+  url: https://careers.microsoft.com/v2/global/en/search?keywords=software%20engineer%20intern&lc=United%20States
+- name: Apple
+  ats: playwright
+  url: https://jobs.apple.com/en-us/search?search=software+engineer+intern&sort=relevance&location=united-states-USA
+- name: Netflix
+  ats: playwright
+  url: https://explore.jobs.netflix.net/careers?query=software%20engineer&location=United%20States
+- name: Nvidia
+  ats: generic
+  url: https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
+- name: Intel
+  ats: workday
+  url: https://intel.wd1.myworkdayjobs.com/en-US/External
+- name: AMD
+  ats: workday
+  url: https://amd.wd1.myworkdayjobs.com/en-US/AMD
+- name: Qualcomm
+  ats: generic
+  url: https://careers.qualcomm.com/careers?query=software+intern
+- name: Cisco
+  ats: workday
+  url: https://cisco.wd5.myworkdayjobs.com/en-US/External
+- name: Oracle
+  ats: generic
+  url: https://careers.oracle.com/jobs/#en/sites/jobsearch/requisitions
+- name: Salesforce
+  ats: workday
+  url: https://salesforce.wd12.myworkdayjobs.com/en-US/External
+- name: Adobe
+  ats: workday
+  url: https://adobe.wd5.myworkdayjobs.com/en-US/external_experienced
+- name: IBM
+  ats: workday
+  url: https://ibm.wd5.myworkdayjobs.com/en-US/IBM_Careers
+- name: Dell
+  ats: workday
+  url: https://dell.wd1.myworkdayjobs.com/en-US/External
+- name: HP
+  ats: workday
+  url: https://hp.wd5.myworkdayjobs.com/en-US/ExternalCareerSite
+- name: Sony
+  ats: greenhouse
+  board_id: sonyinteractiveentertainmentglobal
+- name: Broadcom
+  ats: workday
+  url: https://broadcom.wd1.myworkdayjobs.com/en-US/External
+- name: OpenAI
+  ats: ashby
+  board_id: openai
+- name: Anthropic
+  ats: greenhouse
+  board_id: anthropic
+- name: DeepMind
+  ats: generic
+  url: https://deepmind.google/about/careers/
+- name: Cohere
+  ats: ashby
+  board_id: cohere
+- name: Mistral AI
+  ats: lever
+  board_id: mistral
+- name: Hugging Face
+  ats: generic
+  url: https://apply.workable.com/huggingface/
+- name: Scale AI
+  ats: greenhouse
+  board_id: scaleai
+- name: Databricks
+  ats: greenhouse
+  board_id: databricks
+- name: Snowflake
+  ats: generic
+  url: https://careers.snowflake.com/us/en
+- name: Datadog
+  ats: greenhouse
+  board_id: datadog
+- name: Perplexity
+  ats: ashby
+  board_id: perplexity
+- name: Replit
+  ats: ashby
+  board_id: replit
+- name: Cursor
+  ats: ashby
+  board_id: cursor
+- name: xAI
+  ats: greenhouse
+  board_id: xai
+- name: Cerebras
+  ats: greenhouse
+  board_id: cerebrassystems
+- name: Modal
+  ats: ashby
+  board_id: modal
+- name: Runway
+  ats: ashby
+  board_id: runway
+- name: Stripe
+  ats: greenhouse
+  board_id: stripe
+- name: Plaid
+  ats: lever
+  board_id: plaid
+- name: Figma
+  ats: greenhouse
+  board_id: figma
+- name: Notion
+  ats: ashby
+  board_id: notion
+- name: Discord
+  ats: greenhouse
+  board_id: discord
+- name: Uber
+  ats: generic
+  url: https://www.uber.com/us/en/careers/list/
+- name: Lyft
+  ats: greenhouse
+  board_id: lyft
+- name: Airbnb
+  ats: greenhouse
+  board_id: airbnb
+- name: DoorDash
+  ats: greenhouse
+  board_id: doordashusa
+- name: Instacart
+  ats: greenhouse
+  board_id: instacart
+- name: Coinbase
+  ats: greenhouse
+  board_id: coinbase
+- name: Robinhood
+  ats: greenhouse
+  board_id: robinhood
+- name: Ramp
+  ats: ashby
+  board_id: ramp
+- name: Brex
+  ats: greenhouse
+  board_id: brex
+- name: Rippling
+  ats: generic
+  url: https://ats.rippling.com/rippling/jobs
+- name: Gusto
+  ats: greenhouse
+  board_id: gusto
+- name: Chime
+  ats: greenhouse
+  board_id: chime
+- name: Grammarly
+  ats: generic
+  url: https://www.grammarly.com/jobs/engineering
+- name: Canva
+  ats: generic
+  url: https://apply.workable.com/canva/
+- name: Airtable
+  ats: greenhouse
+  board_id: airtable
+- name: Retool
+  ats: ashby
+  board_id: retool
+- name: Linear
+  ats: ashby
+  board_id: linear
+- name: Vercel
+  ats: greenhouse
+  board_id: vercel
+- name: Supabase
+  ats: ashby
+  board_id: supabase
+- name: Rivian
+  ats: generic
+  url: https://careers.rivian.com/
+- name: Lucid Motors
+  ats: greenhouse
+  board_id: lucidmotors
+- name: Flexport
+  ats: greenhouse
+  board_id: flexport
+- name: Confluent
+  ats: ashby
+  board_id: confluent
+- name: Elastic
+  ats: greenhouse
+  board_id: elastic
+- name: MongoDB
+  ats: greenhouse
+  board_id: mongodb
+- name: Cockroach Labs
+  ats: greenhouse
+  board_id: cockroachlabs
+- name: Pinterest
+  ats: greenhouse
+  board_id: pinterest
+- name: Snap
+  ats: workday
+  url: https://snapchat.wd1.myworkdayjobs.com/snap
+- name: Reddit
+  ats: greenhouse
+  board_id: reddit
+- name: Spotify
+  ats: lever
+  board_id: spotify
+- name: TikTok / ByteDance
+  ats: playwright
+  url: https://careers.tiktok.com/position?keywords=software%20engineer%20intern&type=2&category=&location=CT_6702371272491878670
+- name: Cloudflare
+  ats: greenhouse
+  board_id: cloudflare
+- name: Fastly
+  ats: greenhouse
+  board_id: fastly
+- name: Twilio
+  ats: greenhouse
+  board_id: twilio
+- name: Dropbox
+  ats: greenhouse
+  board_id: dropbox
+- name: Atlassian
+  ats: generic
+  url: https://www.atlassian.com/company/careers/all-jobs
+- name: GitLab
+  ats: greenhouse
+  board_id: gitlab
+- name: Docker
+  ats: ashby
+  board_id: docker
+- name: Grafana Labs
+  ats: greenhouse
+  board_id: grafanalabs
+- name: LaunchDarkly
+  ats: greenhouse
+  board_id: launchdarkly
+- name: Postman
+  ats: greenhouse
+  board_id: postman
+- name: Okta
+  ats: workday
+  url: https://okta.wd1.myworkdayjobs.com/en-US/Okta_Careers
+- name: Temporal
+  ats: greenhouse
+  board_id: temporal
+- name: PagerDuty
+  ats: greenhouse
+  board_id: pagerduty
+- name: Splunk
+  ats: workday
+  url: https://splunk.wd1.myworkdayjobs.com/en-US/Splunk
+- name: New Relic
+  ats: greenhouse
+  board_id: newrelic
+- name: Sentry
+  ats: ashby
+  board_id: sentry
+- name: Webflow
+  ats: greenhouse
+  board_id: webflow
+- name: Coda
+  ats: lever
+  board_id: Coda
+- name: 1Password
+  ats: ashby
+  board_id: 1password
+- name: Tailscale
+  ats: greenhouse
+  board_id: tailscale
+- name: Render
+  ats: ashby
+  board_id: render
+- name: Neon
+  ats: ashby
+  board_id: neon
+- name: PlanetScale
+  ats: greenhouse
+  board_id: planetscale
+- name: Convex
+  ats: ashby
+  board_id: convex-dev
+- name: Resend
+  ats: ashby
+  board_id: resend
+- name: PostHog
+  ats: ashby
+  board_id: posthog
+- name: Sourcegraph
+  ats: greenhouse
+  board_id: sourcegraph91
+- name: CrowdStrike
+  ats: workday
+  url: https://crowdstrike.wd5.myworkdayjobs.com/crowdstrikecareers
+- name: Palo Alto Networks
+  ats: generic
+  url: https://jobs.paloaltonetworks.com/en/
+- name: Zscaler
+  ats: greenhouse
+  board_id: zscaler
+- name: Abnormal Security
+  ats: greenhouse
+  board_id: abnormalsecurity
+- name: Recorded Future
+  ats: greenhouse
+  board_id: recordedfuture
+- name: JPMorgan Chase
+  ats: playwright
+  url: https://careers.jpmorgan.com/us/en/search-results?keywords=software%20engineer%20intern
+- name: Goldman Sachs
+  ats: playwright
+  url: https://higher.gs.com/roles?page=1&location=Americas&type=Internship
+- name: Morgan Stanley
+  ats: playwright
+  url: https://morganstanley.tal.net/vx/lang-en-GB/mobile-0/brand-2/candidate/jobboard/vacancy/3/adv/
+- name: Bank of America
+  ats: playwright
+  url: https://campus.bankofamerica.com/careers/students_graduates.html
+- name: Citigroup
+  ats: playwright
+  url: https://jobs.citi.com/search-jobs/software%20engineer%20intern/United%20States
+- name: Wells Fargo
+  ats: playwright
+  url: https://www.wellsfargojobs.com/en/jobs/?keywords=software+engineer+intern&location=United+States
+- name: Capital One
+  ats: playwright
+  url: https://www.capitalonecareers.com/search-jobs/software%20engineer%20intern/United%20States
+- name: Visa
+  ats: smartrecruiters
+  board_id: Visa
+- name: Square (Block)
+  ats: greenhouse
+  board_id: block
+- name: Affirm
+  ats: greenhouse
+  board_id: affirm
+- name: Sofi
+  ats: greenhouse
+  board_id: sofi
+- name: Marqeta
+  ats: greenhouse
+  board_id: marqeta
+- name: Adyen
+  ats: greenhouse
+  board_id: adyen
+- name: Toast
+  ats: greenhouse
+  board_id: toast
+- name: Citadel
+  ats: playwright
+  url: https://www.citadel.com/careers/open-opportunities/?department=Technology
+- name: Citadel Securities
+  ats: playwright
+  url: https://www.citadelsecurities.com/careers/open-opportunities/?department=Technology
+- name: Two Sigma
+  ats: playwright
+  url: https://careers.twosigma.com/careers/OpenRoles?query=software%20engineer
+- name: DE Shaw
+  ats: playwright
+  url: https://www.deshaw.com/careers/choose-your-path/students-and-new-graduates
+- name: Jane Street
+  ats: greenhouse
+  board_id: janestreet
+- name: Jump Trading
+  ats: playwright
+  url: https://www.jumptrading.com/careers/?search=software+engineer+intern
+- name: Hudson River Trading
+  ats: greenhouse
+  board_id: wehrtyou
+- name: Bridgewater Associates
+  ats: greenhouse
+  board_id: bridgewater89
+- name: Point72
+  ats: greenhouse
+  board_id: point72
+- name: Optiver
+  ats: greenhouse
+  board_id: optiver
+- name: IMC Trading
+  ats: greenhouse
+  board_id: imc
+- name: DRW
+  ats: greenhouse
+  board_id: drweng
+- name: Five Rings
+  ats: greenhouse
+  board_id: fiveringsllc
+- name: Akuna Capital
+  ats: greenhouse
+  board_id: akunacapital
+- name: SIG (Susquehanna)
+  ats: generic
+  url: https://careers.sig.com/
+- name: Tower Research Capital
+  ats: greenhouse
+  board_id: towerresearchcapital
+- name: Virtu Financial
+  ats: greenhouse
+  board_id: virtu
+- name: Old Mission Capital
+  ats: greenhouse
+  board_id: oldmissioncapital
+- name: Belvedere Trading
+  ats: lever
+  board_id: belvederetrading
+- name: Voleon Group
+  ats: lever
+  board_id: voleon
+- name: Headlands Technologies
+  ats: greenhouse
+  board_id: headlandstechnologiesllc
+- name: Radix Trading
+  ats: greenhouse
+  board_id: radixuniversity
+- name: Lockheed Martin
+  ats: playwright
+  url: https://www.lockheedmartinjobs.com/search-jobs/software%20engineer%20intern/United%20States
+- name: Raytheon (RTX)
+  ats: workday
+  url: https://rtx.wd1.myworkdayjobs.com/en-US/External
+- name: Northrop Grumman
+  ats: workday
+  url: https://northropgrumman.wd1.myworkdayjobs.com/en-US/Northrop_Grumman_External_Site
+- name: Boeing
+  ats: workday
+  url: https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL
+- name: L3Harris
+  ats: workday
+  url: https://l3harris.wd5.myworkdayjobs.com/en-US/L3Harris
+- name: SpaceX
+  ats: greenhouse
+  board_id: spacex
+- name: Anduril
+  ats: greenhouse
+  board_id: andurilindustries
+- name: Palantir
+  ats: lever
+  board_id: palantir
+- name: Shield AI
+  ats: lever
+  board_id: shieldai
+- name: Applied Intuition
+  ats: greenhouse
+  board_id: appliedintuition
+- name: Gecko Robotics
+  ats: ashby
+  board_id: gecko-robotics
+- name: Hadrian
+  ats: ashby
+  board_id: hadrian-automation
+- name: Hermeus
+  ats: lever
+  board_id: hermeus
+- name: Vast
+  ats: greenhouse
+  board_id: vast
+- name: Riot Games
+  ats: greenhouse
+  board_id: riotgames
+- name: Epic Games
+  ats: greenhouse
+  board_id: epicgames
+- name: Valve
+  ats: generic
+  url: https://www.valvesoftware.com/en/jobs
+- name: Roblox
+  ats: greenhouse
+  board_id: roblox
+- name: Unity
+  ats: greenhouse
+  board_id: unity3d
+- name: Bungie
+  ats: greenhouse
+  board_id: bungie
+- name: Epic Systems
+  ats: generic
+  url: https://careers.epic.com/
+- name: Veeva Systems
+  ats: playwright
+  url: https://careers.veeva.com/
+- name: Oscar Health
+  ats: greenhouse
+  board_id: oscar
+- name: Flatiron Health
+  ats: greenhouse
+  board_id: flatironhealth
+- name: Waymo
+  ats: greenhouse
+  board_id: waymo
+- name: Aurora
+  ats: greenhouse
+  board_id: aurorainnovation
+- name: Nuro
+  ats: greenhouse
+  board_id: nuro
+- name: Zoox
+  ats: lever
+  board_id: zoox
+- name: Tesla
+  ats: playwright
+  url: https://www.tesla.com/careers/search/?query=software%20engineer%20intern&region=5
+- name: Boston Dynamics
+  ats: workday
+  url: https://bostondynamics.wd1.myworkdayjobs.com/Boston_Dynamics
+- name: Shopify
+  ats: generic
+  url: https://apply.workable.com/shopify/
+- name: Wayfair
+  ats: generic
+  url: https://www.aboutwayfair.com/careers
+- name: Etsy
+  ats: workday
+  url: https://etsy.wd5.myworkdayjobs.com/Etsy_Careers
+- name: Walmart Global Tech
+  ats: workday
+  url: https://walmart.wd5.myworkdayjobs.com/en-US/WalmartExternal
+- name: Target
+  ats: workday
+  url: https://target.wd5.myworkdayjobs.com/en-US/targetExternalCareerSite
+- name: Ellipsis Labs
+  ats: ashby
+  board_id: ellipsislabs
+- name: Paradigm
+  ats: ashby
+  board_id: Paradigm
+- name: a16z
+  ats: greenhouse
+  board_id: a16z
+- name: Phantom
+  ats: ashby
+  board_id: phantom
+- name: Solana Labs
+  ats: ashby
+  board_id: solanalabs
+- name: Uniswap
+  ats: ashby
+  board_id: uniswap
+- name: Aave
+  ats: lever
+  board_id: aavelabs
+  eu: true
+- name: Polygon Labs
+  ats: ashby
+  board_id: polygon-labs
+- name: Offchain Labs (Arbitrum)
+  ats: lever
+  board_id: offchainlabs
+- name: Fireblocks
+  ats: greenhouse
+  board_id: fireblocks
+- name: PayPal
+  ats: workday
+  url: https://paypal.wd1.myworkdayjobs.com/en-US/jobs
+- name: Arm
+  ats: workday
+  url: https://arm.wd1.myworkdayjobs.com/en-US/External
+- name: Marvell
+  ats: workday
+  url: https://marvell.wd1.myworkdayjobs.com/en-US/MarvellCareers
+- name: Micron
+  ats: workday
+  url: https://micron.wd1.myworkdayjobs.com/en-US/External
+- name: Western Digital
+  ats: workday
+  url: https://westerndigital.wd1.myworkdayjobs.com/en-US/WD_External
+- name: Applied Materials
+  ats: workday
+  url: https://amat.wd1.myworkdayjobs.com/en-US/External
+- name: Asana
+  ats: greenhouse
+  board_id: asana
+- name: Duolingo
+  ats: greenhouse
+  board_id: duolingo
+- name: Qualtrics
+  ats: greenhouse
+  board_id: qualtrics
+- name: ServiceNow
+  ats: workday
+  url: https://servicenow.wd1.myworkdayjobs.com/en-US/servicenow
+- name: Workday
+  ats: workday
+  url: https://workday.wd5.myworkdayjobs.com/en-US/Workday
+- name: Zoom
+  ats: workday
+  url: https://zoom.wd5.myworkdayjobs.com/Zoom
+- name: Zillow
+  ats: workday
+  url: https://zillow.wd5.myworkdayjobs.com/Zillow_Group_External
+- name: Redfin
+  ats: generic
+  url: https://careers.redfin.com/us/en/
+- name: HubSpot
+  ats: greenhouse
+  board_id: hubspot
+- name: Squarespace
+  ats: greenhouse
+  board_id: squarespace
+- name: Nutanix
+  ats: workday
+  url: https://nutanix.wd1.myworkdayjobs.com/en-US/Nutanix_Careers
+- name: Pure Storage
+  ats: greenhouse
+  board_id: purestorage
+- name: Rubrik
+  ats: greenhouse
+  board_id: rubrik
+- name: Benchling
+  ats: ashby
+  board_id: benchling
+- name: Verkada
+  ats: greenhouse
+  board_id: verkada
+- name: Lumen Technologies
+  ats: workday
+  url: https://lumen.wd5.myworkdayjobs.com/en-US/Global
+- name: Ally Financial
+  ats: playwright
+  url: https://www.ally.com/about/careers/search-jobs/?q=software%20engineer%20intern
+- name: Fidelity Investments
+  ats: playwright
+  url: https://jobs.fidelity.com/search-jobs/software%20engineer%20intern
+- name: Charles Schwab
+  ats: workday
+  url: https://schwab.wd5.myworkdayjobs.com/en-US/SchwabCareers
+- name: T. Rowe Price
+  ats: workday
+  url: https://troweprice.wd5.myworkdayjobs.com/en-US/TRowePrice
+- name: Vanguard
+  ats: workday
+  url: https://vanguard.wd5.myworkdayjobs.com/en-US/VanguardCareers
+- name: State Farm
+  ats: workday
+  url: https://statefarm.wd1.myworkdayjobs.com/en-US/External
+- name: Progressive
+  ats: playwright
+  url: https://www.progressive.com/careers/
+- name: Liberty Mutual
+  ats: workday
+  url: https://libertymutual.wd5.myworkdayjobs.com/en-US/GAP
+- name: Bloomberg
+  ats: playwright
+  url: https://careers.bloomberg.com/job/search?c=Engineering+%26+CTO&l=United+States
+- name: General Motors
+  ats: workday
+  url: https://generalmotors.wd5.myworkdayjobs.com/en-US/Careers_General_Motors
+- name: Ford Motor Company
+  ats: workday
+  url: https://ford.wd1.myworkdayjobs.com/en-US/FordCareers
+- name: John Deere
+  ats: workday
+  url: https://deere.wd5.myworkdayjobs.com/en-US/JohnDeereCareers
+- name: Caterpillar
+  ats: workday
+  url: https://caterpillarcareers.wd5.myworkdayjobs.com/en-US/CaterpillarCareers
+- name: 3M
+  ats: workday
+  url: https://3m.wd1.myworkdayjobs.com/en-US/Search
+- name: Honeywell
+  ats: workday
+  url: https://honeywell.wd1.myworkdayjobs.com/en-US/Honeywell
+- name: GE Aerospace
+  ats: workday
+  url: https://ge.wd5.myworkdayjobs.com/en-US/GE_ExternalSite
+- name: Twitch
+  ats: greenhouse
+  board_id: twitch
+- name: ABB
+  ats: workday
+  url: https://abb.wd3.myworkdayjobs.com/en-US/external_career_page
+- name: ABC Fitness
+  ats: workday
+  url: https://abcfinancial.wd5.myworkdayjobs.com/en-US/abcfinancialservices
+- name: AccumTech
+  ats: playwright
+  url: http://accumtech.applytojob.com/apply/pT5UrcAVjH/Software-Developer-Intern
+- name: Ace IT Careers
+  ats: playwright
+  url: https://apply.workable.com/ace-it-careers-1/
+- name: Acorns
+  ats: ashby
+  board_id: acorns
+- name: Advanced Space
+  ats: greenhouse
+  board_id: advancedspace
+- name: Aerotek
+  ats: playwright
+  url: https://careers-aerotek.icims.com/jobs/search?ss=1
+- name: AeroVect
+  ats: ashby
+  board_id: aerovect
+- name: AeroVironment
+  ats: workday
+  url: https://avav.wd1.myworkdayjobs.com/en-US/avav
+- name: Agate Software
+  ats: lever
+  board_id: agatesoftware
+- name: Age of Learning
+  ats: lever
+  board_id: aofl
+- name: Agility Robotics
+  ats: playwright
+  url: https://www.agilityrobotics.com/about/job-post?gh_jid=5826778004
+- name: Al Warren Oil
+  ats: playwright
+  url: https://apply.workable.com/al-warren-oil-company-inc/
+- name: Alarm.com
+  ats: greenhouse
+  board_id: alarmcom
+- name: Alight
+  ats: workday
+  url: https://alight.wd5.myworkdayjobs.com/en-US/careers
+- name: ALKU
+  ats: greenhouse
+  board_id: alku
+- name: Alloy Campus Recruiting
+  ats: greenhouse
+  board_id: alloycampus
+- name: Alloy Enterprises
+  ats: ashby
+  board_id: alloyenterprises
+- name: Amentum
+  ats: workday
+  url: https://pae.wd1.myworkdayjobs.com/en-US/amentum_careers
+- name: American Century Investments
+  ats: workday
+  url: https://americancentury.wd5.myworkdayjobs.com/en-US/americancenturyinvestments
+- name: Analog Devices
+  ats: workday
+  url: https://analogdevices.wd1.myworkdayjobs.com/en-US/external
+- name: Anaplan
+  ats: greenhouse
+  board_id: anaplan
+- name: AnaVation
+  ats: lever
+  board_id: anavationllc
+- name: Andrews Cooper
+  ats: playwright
+  url: http://andrewscooper.applytojob.com/apply/Mv0sgIIvuu/Associate-Software-Controls-Engineer
+- name: Anduril Industries
+  ats: greenhouse
+  board_id: andurilindustries
+- name: Angle Health
+  ats: ashby
+  board_id: anglehealth
+- name: Apex Fintech Solutions
+  ats: workday
+  url: https://peak6group.wd1.myworkdayjobs.com/en-US/apexfintechsolutions
+- name: Appian
+  ats: greenhouse
+  board_id: appian
+- name: Applied Information Sciences
+  ats: workday
+  url: https://appliedis.wd5.myworkdayjobs.com/en-US/ais_careers
+- name: Apptronik
+  ats: greenhouse
+  board_id: apptronik
+- name: Aquatic Capital Management
+  ats: greenhouse
+  board_id: aquaticcapitalmanagement
+- name: Arcesium
+  ats: greenhouse
+  board_id: arcesiumllc
+- name: Arkansas Center for Data Sciences
+  ats: lever
+  board_id: acds
+- name: Ascensus
+  ats: workday
+  url: https://ascensushr.wd1.myworkdayjobs.com/en-US/ascensuscareers
+- name: ASM
+  ats: playwright
+  url: https://www.asm.com/open-vacancies/?gh_jid=4771224101
+- name: Astranis Space Technologies
+  ats: greenhouse
+  board_id: astranis
+- name: athenahealth
+  ats: workday
+  url: https://athenahealth.wd1.myworkdayjobs.com/en-US/external
+- name: Atomic Semi
+  ats: ashby
+  board_id: atomicsemi
+- name: ATPCO
+  ats: smartrecruiters
+  board_id: ATPCO1
+- name: Audax Group
+  ats: greenhouse
+  board_id: audaxgroup
+- name: Automat
+  ats: ashby
+  board_id: automat
+- name: Avathon
+  ats: playwright
+  url: https://avathon.com/company/careers-job-listing/?gh_jid=4655249005
+- name: Axcelis
+  ats: workday
+  url: https://axcelis.wd1.myworkdayjobs.com/en-US/axcelis
+- name: Axon
+  ats: greenhouse
+  board_id: axon
+- name: Baker Hughes
+  ats: workday
+  url: https://bakerhughes.wd5.myworkdayjobs.com/en-US/bakerhughes
+- name: Baker Tilly
+  ats: workday
+  url: https://bakertilly.wd5.myworkdayjobs.com/en-US/btcareers
+- name: Ball Aerospace
+  ats: playwright
+  url: https://jobs.baesystems.com/global/en/job/BAE1US121898BREXTERNAL/GXP-Software-Intern-Summer-2026
+- name: Base Power Company
+  ats: ashby
+  board_id: base-power
+- name: Baselayer
+  ats: greenhouse
+  board_id: baselayer
+- name: Baton Corporation
+  ats: ashby
+  board_id: batoncorporation
+- name: BDO
+  ats: workday
+  url: https://bdo.wd3.myworkdayjobs.com/en-US/bdo
+- name: BECU
+  ats: workday
+  url: https://becu.wd1.myworkdayjobs.com/en-US/external
+- name: BEDI Partnerships
+  ats: greenhouse
+  board_id: udemybedi
+- name: Berkley Insurance
+  ats: playwright
+  url: https://careers-berkley.icims.com/jobs/search?ss=1
+- name: BigCommerce
+  ats: workday
+  url: https://bigcommerce.wd12.myworkdayjobs.com/en-US/commerce
+- name: Bio-Rad Laboratories
+  ats: playwright
+  url: https://careers-biorad.icims.com/jobs/search?ss=1
+- name: Bio-Techne
+  ats: workday
+  url: https://biotechne.wd5.myworkdayjobs.com/en-US/biotechne
+- name: BizFlow
+  ats: playwright
+  url: http://bizflow.applytojob.com/apply/iCxhuSG2Y8/Associate-Software-Engineer-FullStack-Client-Enablement
+- name: BlackRock
+  ats: workday
+  url: https://blackrock.wd1.myworkdayjobs.com/en-US/blackrock_professional
+- name: Blackstone
+  ats: workday
+  url: https://blackstone.wd1.myworkdayjobs.com/en-US/blackstone_careers
+- name: Bloom Energy
+  ats: workday
+  url: https://bloomenergy.wd1.myworkdayjobs.com/en-US/bloomenergycareers
+- name: Blue Origin
+  ats: workday
+  url: https://blueorigin.wd5.myworkdayjobs.com/en-US/blueorigin
+- name: Booz Allen
+  ats: workday
+  url: https://bah.wd1.myworkdayjobs.com/en-US/bah_jobs
+- name: BorgWarner
+  ats: workday
+  url: https://borgwarner.wd5.myworkdayjobs.com/en-US/borgwarner_careers
+- name: Bracco
+  ats: workday
+  url: https://bracco.wd103.myworkdayjobs.com/en-US/braccocareers
+- name: Brain
+  ats: playwright
+  url: https://braincorp.com/open-positions?gh_jid=8490301002
+- name: Bridge Investment Group
+  ats: workday
+  url: https://bridgeigp.wd1.myworkdayjobs.com/en-US/bigc
+- name: BS&A Software
+  ats: playwright
+  url: http://bsa.applytojob.com/apply/dvXDzc11tD/Customer-Solutions-Intern-ERP-Software
+- name: CACI
+  ats: workday
+  url: https://caci.wd1.myworkdayjobs.com/en-US/external
+- name: Cadence
+  ats: workday
+  url: https://cadence.wd1.myworkdayjobs.com/en-US/external_careers
+- name: CAI
+  ats: workday
+  url: https://cai.wd5.myworkdayjobs.com/en-US/computer_aid
+- name: CalAmp
+  ats: playwright
+  url: https://careers-calamp.icims.com/jobs/search?ss=1
+- name: Cambium Learning Group
+  ats: workday
+  url: https://cambiumlearning.wd1.myworkdayjobs.com/en-US/camb
+- name: Candid Intelligence
+  ats: ashby
+  board_id: candidintelligence
+- name: Canon
+  ats: playwright
+  url: https://external-canoncareers.icims.com/jobs/search?ss=1
+- name: Captivation Software
+  ats: greenhouse
+  board_id: captivation
+- name: CCC Intelligent Solutions
+  ats: workday
+  url: https://cccis.wd1.myworkdayjobs.com/en-US/broadbean_external
+- name: Cerved
+  ats: workday
+  url: https://cerved.wd3.myworkdayjobs.com/en-US/cerved
+- name: CIBC
+  ats: workday
+  url: https://cibc.wd3.myworkdayjobs.com/en-US/search
+- name: Ciena
+  ats: workday
+  url: https://ciena.wd5.myworkdayjobs.com/en-US/careers
+- name: Cincinnati Children’s
+  ats: workday
+  url: https://cincinnatichildrens.wd5.myworkdayjobs.com/en-US/careersatcincinnatichildrens
+- name: Cirrus Logic
+  ats: workday
+  url: https://cirrus.wd1.myworkdayjobs.com/en-US/CirrusLogic
+- name: Citizen Health
+  ats: ashby
+  board_id: citizen%20health
+- name: Cloudforce
+  ats: lever
+  board_id: go-cloudforce
+- name: Cohesity
+  ats: workday
+  url: https://cohesity.wd5.myworkdayjobs.com/en-US/cohesity_careers
+- name: Collabora
+  ats: lever
+  board_id: collabora
+- name: College of Southern Nevada
+  ats: workday
+  url: https://nshe.wd1.myworkdayjobs.com/en-US/csn-external
+- name: ConductorOne
+  ats: ashby
+  board_id: conductorone
+- name: Cook Systems
+  ats: greenhouse
+  board_id: cooksys
+- name: Copart
+  ats: workday
+  url: https://copart.wd12.myworkdayjobs.com/en-US/copart
+- name: Coverdash
+  ats: ashby
+  board_id: coverdash
+- name: Cox
+  ats: workday
+  url: https://cox.wd1.myworkdayjobs.com/en-US/cox_external_career_site_1
+- name: Crusoe
+  ats: ashby
+  board_id: crusoe
+- name: Culture Biosciences
+  ats: playwright
+  url: https://culturebiosciences.com/careers?gh_jid=7646386003
+- name: Curtiss-Wright
+  ats: workday
+  url: https://curtisswright.wd1.myworkdayjobs.com/en-US/cw_external_career_site
+- name: CVector Energy
+  ats: playwright
+  url: https://apply.workable.com/cvector/
+- name: CVS Health
+  ats: workday
+  url: https://cvshealth.wd1.myworkdayjobs.com/en-US/cvs_health_careers
+- name: Cylake
+  ats: ashby
+  board_id: cylake-inc
+- name: d-Matrix
+  ats: ashby
+  board_id: d-matrix
+- name: D2L- Early Talent
+  ats: playwright
+  url: https://www.d2l.com/careers/early-talent/jobs/?job_id=7455531&gh_jid=7455531
+- name: Daifuku
+  ats: playwright
+  url: https://careers-daifuku-america.icims.com/jobs/search?ss=1
+- name: Daimler Truck
+  ats: workday
+  url: https://dtna.wd5.myworkdayjobs.com/en-US/dtna_affiliate
+- name: DebtBook
+  ats: greenhouse
+  board_id: debtbook
+- name: DEKA Research & Development
+  ats: playwright
+  url: http://deka.applytojob.com/apply/qLJWNdpqLt/Junior-Software-Engineer
+- name: Deutsche Bank
+  ats: workday
+  url: https://db.wd3.myworkdayjobs.com/en-US/dbwebsite
+- name: Diamond Foundry
+  ats: lever
+  board_id: diamondfoundry
+- name: DigiCert
+  ats: playwright
+  url: https://www.digicert.com/careers/?gh_jid=8419086002
+- name: Digital Foundry
+  ats: playwright
+  url: http://digitalfoundry.applytojob.com/apply/AImbCdvOV4/Software-Engineer-Associate
+- name: Digital NEST
+  ats: playwright
+  url: http://digitalnest.applytojob.com/apply/VX3OVBbhW4/Software-Development-Associate-BizzNEST
+- name: Digs
+  ats: greenhouse
+  board_id: digs
+- name: Diligent
+  ats: greenhouse
+  board_id: diligentcorporation
+- name: DocuSign
+  ats: playwright
+  url: https://uscareers-docusign.icims.com/jobs/search?ss=1
+- name: Dorsia
+  ats: greenhouse
+  board_id: dorsia
+- name: Draper
+  ats: workday
+  url: https://draper.wd5.myworkdayjobs.com/en-US/draper_careers
+- name: Dryft
+  ats: ashby
+  board_id: dryft
+- name: Echodyne
+  ats: greenhouse
+  board_id: echodynecorp
+- name: Elavon
+  ats: workday
+  url: https://usbank.wd1.myworkdayjobs.com/en-US/elavon_careers
+- name: EnergyHub
+  ats: greenhouse
+  board_id: energyhub
+- name: ENFOS
+  ats: playwright
+  url: https://apply.workable.com/enfos-inc/
+- name: ENSCO
+  ats: greenhouse
+  board_id: ensco
+- name: Ensono
+  ats: playwright
+  url: https://ensono.com/company/careers/jobs-board/?gh_jid=4665481005
+- name: Entegris
+  ats: workday
+  url: https://entegris.wd1.myworkdayjobs.com/en-US/entegriscareers
+- name: Enterprise
+  ats: playwright
+  url: https://us-erac.icims.com/jobs/search?ss=1
+- name: Epirus
+  ats: playwright
+  url: https://www.epirusinc.com/open-roles?gh_jid=5838790004
+- name: Esri
+  ats: playwright
+  url: https://www.esri.com/careers/5027588007?gh_jid=5027588007
+- name: Etched
+  ats: ashby
+  board_id: etched
+- name: Eulerity
+  ats: greenhouse
+  board_id: eulerity
+- name: Everwatch
+  ats: playwright
+  url: https://everwatch-everwatchsolutions.icims.com/jobs/search?ss=1
+- name: ezCater
+  ats: greenhouse
+  board_id: ezcaterinc
+- name: Farsight AI
+  ats: ashby
+  board_id: farsight
+- name: Federal Reserve
+  ats: workday
+  url: https://rb.wd5.myworkdayjobs.com/en-US/frs
+- name: FireMon
+  ats: lever
+  board_id: firemon
+- name: First Advantage
+  ats: playwright
+  url: http://firstadvantage.applytojob.com/apply/fiN17xh6U2/Associate-Software-Engineer-US-Remote
+- name: First American
+  ats: workday
+  url: https://firstam.wd1.myworkdayjobs.com/en-US/firstamericancareers
+- name: FIS
+  ats: workday
+  url: https://fis.wd5.myworkdayjobs.com/en-US/searchjobs
+- name: Fiserv
+  ats: workday
+  url: https://fiserv.wd5.myworkdayjobs.com/en-US/ext
+- name: Flutter
+  ats: workday
+  url: https://flutterbe.wd3.myworkdayjobs.com/en-US/flutterint_external
+- name: Foxglove
+  ats: ashby
+  board_id: foxglove
+- name: Freedom Technology Solutions Group
+  ats: greenhouse
+  board_id: freedomconsulting
+- name: Freeform
+  ats: greenhouse
+  board_id: freeformfuturecorp
+- name: G2 Ops
+  ats: playwright
+  url: http://jobs.g2-ops.com/apply/WNJPir58Un/Associate-ModelBased-Systems-Engineer-Software-Concentration
+- name: Garda Capital Partners
+  ats: greenhouse
+  board_id: gardacp
+- name: GDIT
+  ats: workday
+  url: https://gdit.wd5.myworkdayjobs.com/en-US/external_career_site
+- name: GE Appliances
+  ats: workday
+  url: https://haier.wd3.myworkdayjobs.com/en-US/ge_appliances
+- name: Gen
+  ats: workday
+  url: https://gen.wd1.myworkdayjobs.com/en-US/careers
+- name: General Dynamics Mission Systems
+  ats: playwright
+  url: https://careers-gdms.icims.com/jobs/search?ss=1
+- name: Geneva Trading
+  ats: greenhouse
+  board_id: genevatrading
+- name: GigaML
+  ats: ashby
+  board_id: gigaml
+- name: GlobalFoundries
+  ats: workday
+  url: https://globalfoundries.wd1.myworkdayjobs.com/en-US/external
+- name: Glydways
+  ats: greenhouse
+  board_id: glydways
+- name: GoLinks
+  ats: ashby
+  board_id: golinks
+- name: Government Employees Health Association
+  ats: workday
+  url: https://geha.wd5.myworkdayjobs.com/en-US/gehacareers
+- name: Guidehouse
+  ats: workday
+  url: https://guidehouse.wd1.myworkdayjobs.com/en-US/external
+- name: Halo Industries
+  ats: playwright
+  url: https://apply.workable.com/halo-industries/
+- name: Harmonia Holdings Group
+  ats: playwright
+  url: https://www.harmonia.com/job-application/?gh_jid=7641520003
+- name: Hayden AI
+  ats: ashby
+  board_id: haydenai
+- name: HeartFlow
+  ats: greenhouse
+  board_id: heartflowinc
+- name: Hewlett Packard Enterprise
+  ats: workday
+  url: https://hpe.wd5.myworkdayjobs.com/en-US/jobsathpe
+- name: Hootsuite
+  ats: playwright
+  url: https://careers.hootsuite.com/job/?gh_jid=7748887
+- name: Hyundai AutoEver
+  ats: playwright
+  url: http://hyundaiautoeveramerica.applytojob.com/apply/RkFmYUEyd3/Software-Engineer-Intern
+- name: ICONIQ Capital
+  ats: greenhouse
+  board_id: icapitalnetwork
+- name: IDEXX
+  ats: workday
+  url: https://idexx.wd1.myworkdayjobs.com/en-US/idexx
+- name: Illumio
+  ats: ashby
+  board_id: illumio
+- name: Impinj
+  ats: greenhouse
+  board_id: impinjexternal
+- name: Impiricus
+  ats: greenhouse
+  board_id: impiricus
+- name: Insulet
+  ats: workday
+  url: https://insulet.wd5.myworkdayjobs.com/en-US/insuletcareers
+- name: INTEGRITYOne Partners
+  ats: playwright
+  url: http://integrityonepartners.applytojob.com/apply/opxL6jIkyA/Junior-FullStack-Developer
+- name: Intelliforce-IT Solutions Group
+  ats: playwright
+  url: http://intelliforceitsolutionsgroup.applytojob.com/apply/uVOPHbn9X0/Junior-Software-Engineer-Fully-Cleared
+- name: InvoiceCloud
+  ats: playwright
+  url: http://invoicecloud.net/careers/open-positions?gh_jid=7655066003
+- name: Iridium Satellite Communications
+  ats: playwright
+  url: https://careers-iridium.icims.com/jobs/search?ss=1
+- name: Ironclad
+  ats: ashby
+  board_id: ironcladhq
+- name: ISYS Technologies
+  ats: playwright
+  url: https://careers-i2xisys.icims.com/jobs/search?ss=1
+- name: IXL Learning
+  ats: playwright
+  url: https://www.ixl.com/company/jobs?gh_jid=8486934002
+- name: Jahnel Group
+  ats: playwright
+  url: https://www.jahnelgroup.com/apply.html?gh_jid=5031747007
+- name: Javelin Global Commodities
+  ats: playwright
+  url: https://apply.workable.com/javelin-global-commodities/
+- name: Joby Aviation
+  ats: playwright
+  url: https://careers-jobyaviation.icims.com/jobs/search?ss=1
