@@ -16,7 +16,7 @@ import sys
 import tempfile
 
 TASK_NAME = "JobScraper"
-INTERVAL_HOURS = 8
+INTERVAL_HOURS = 24
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PYTHON = sys.executable
 SCRIPT = os.path.join(ROOT, "run.py")
