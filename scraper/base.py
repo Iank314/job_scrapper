@@ -2,7 +2,7 @@ import time
 import requests
 from config import REQUEST_TIMEOUT, RATE_LIMIT_DELAY
 from filters import matches_backend_swe, categorize, is_us_location, requires_phd
-from db import upsert_job, mark_inactive
+from db import sync_company_jobs
 
 # Clean headers for JSON APIs (Greenhouse, Lever, Ashby, SmartRecruiters)
 API_HEADERS = {
@@ -67,15 +67,19 @@ class BaseScraper:
             print(f"  [!] {self.ats_name}/{name}: {e}")
             return set()
 
-        saved = 0
-        new_jobs = []
+        jobs_to_save = []
         active_urls = set()
+        seen_urls = set()
         for job in raw_jobs:
             title = job["title"]
             url = job["url"]
             location = job.get("location", "")
             date_posted = job.get("date_posted")
             description = job.get("description", "")
+
+            if not title or not url or url in seen_urls:
+                continue
+            seen_urls.add(url)
 
             if not matches_backend_swe(title):
                 continue
@@ -91,19 +95,28 @@ class BaseScraper:
                 continue
 
             active_urls.add(url)
-            is_new = upsert_job(name, title, url, category, self.ats_name, location, date_posted)
-            saved += 1
-            if is_new:
-                new_jobs.append({
-                    "company": name,
-                    "title": title,
-                    "url": url,
-                    "category": category,
-                    "location": location or "",
-                })
+            jobs_to_save.append({
+                "title": title,
+                "url": url,
+                "category": category,
+                "location": location,
+                "date_posted": date_posted,
+            })
 
-        mark_inactive(self.ats_name, name, active_urls)
+        new_urls = sync_company_jobs(name, self.ats_name, jobs_to_save, active_urls)
+        new_jobs = [
+            {
+                "company": name,
+                "title": job["title"],
+                "url": job["url"],
+                "category": job["category"],
+                "location": job.get("location") or "",
+            }
+            for job in jobs_to_save
+            if job["url"] in new_urls
+        ]
 
+        saved = len(jobs_to_save)
         if saved:
             new_tag = f" ({len(new_jobs)} new)" if new_jobs else ""
             print(f"  [+] {self.ats_name}/{name}: {saved} relevant jobs found{new_tag}")

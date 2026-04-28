@@ -4,9 +4,11 @@ from config import DB_PATH
 
 
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout=30000")
     return conn
 
 
@@ -45,8 +47,89 @@ def init_db():
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_active ON jobs(active)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_applied ON jobs(applied)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_trashed ON jobs(trashed)")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_jobs_open_sort "
+        "ON jobs(active, applied, trashed, date_scraped)"
+    )
     conn.commit()
     conn.close()
+
+
+def sync_company_jobs(company, source_ats, jobs, active_urls):
+    """Persist one company's filtered jobs in a single transaction.
+
+    Returns the set of URLs that were not already present before this sync.
+    """
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    urls = [job["url"] for job in jobs if job.get("url")]
+    active_urls = {url for url in active_urls if url}
+
+    try:
+        conn.execute("CREATE TEMP TABLE IF NOT EXISTS scrape_urls (url TEXT PRIMARY KEY)")
+        conn.execute("DELETE FROM scrape_urls")
+        if urls:
+            conn.executemany(
+                "INSERT OR IGNORE INTO scrape_urls (url) VALUES (?)",
+                [(url,) for url in urls],
+            )
+
+        existing_urls = {
+            row[0]
+            for row in conn.execute(
+                "SELECT jobs.url FROM jobs JOIN scrape_urls ON scrape_urls.url = jobs.url"
+            ).fetchall()
+        }
+
+        rows = [
+            (
+                company,
+                job["title"],
+                job["url"],
+                job["category"],
+                source_ats,
+                job.get("location"),
+                job.get("date_posted"),
+                now,
+            )
+            for job in jobs
+            if job.get("url")
+        ]
+        if rows:
+            conn.executemany("""
+                INSERT INTO jobs (company, title, url, category, source_ats, location, date_posted, date_scraped, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                ON CONFLICT(url) DO UPDATE SET
+                    title = excluded.title,
+                    category = excluded.category,
+                    location = excluded.location,
+                    date_posted = excluded.date_posted,
+                    date_scraped = excluded.date_scraped,
+                    active = 1
+            """, rows)
+
+        # Because this is only called after a successful fetch, an empty
+        # active set means the company currently has no matching jobs.
+        if active_urls:
+            conn.execute("""
+                UPDATE jobs SET active = 0
+                WHERE source_ats = ?
+                  AND company = ?
+                  AND active = 1
+                  AND NOT EXISTS (
+                      SELECT 1 FROM scrape_urls WHERE scrape_urls.url = jobs.url
+                  )
+            """, (source_ats, company))
+        else:
+            conn.execute("""
+                UPDATE jobs SET active = 0
+                WHERE source_ats = ? AND company = ? AND active = 1
+            """, (source_ats, company))
+
+        conn.commit()
+        return set(urls) - existing_urls
+    finally:
+        conn.close()
 
 
 def upsert_job(company, title, url, category, source_ats, location=None, date_posted=None):
@@ -55,7 +138,8 @@ def upsert_job(company, title, url, category, source_ats, location=None, date_po
     conn = get_conn()
     now = datetime.utcnow().isoformat()
     try:
-        cur = conn.execute("""
+        exists = conn.execute("SELECT 1 FROM jobs WHERE url = ?", (url,)).fetchone() is not None
+        conn.execute("""
             INSERT INTO jobs (company, title, url, category, source_ats, location, date_posted, date_scraped, active)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
             ON CONFLICT(url) DO UPDATE SET
@@ -67,29 +151,40 @@ def upsert_job(company, title, url, category, source_ats, location=None, date_po
                 active = 1
         """, (company, title, url, category, source_ats, location, date_posted, now))
         conn.commit()
-        # SQLite: lastrowid is set on INSERT but not on ON CONFLICT UPDATE.
-        # changes() returns 1 for both INSERT and UPDATE though.
-        # Best heuristic: if lastrowid > 0 and the id matches the row we
-        # just touched, it was a fresh insert.
-        row = conn.execute("SELECT id FROM jobs WHERE url = ?", (url,)).fetchone()
-        is_new = row is not None and cur.lastrowid == row[0]
-        return is_new
+        return not exists
     finally:
         conn.close()
 
 
 def mark_inactive(source_ats, company, active_urls):
     """Mark jobs as inactive if they no longer appear on the career page."""
-    if not active_urls:
-        return
     conn = get_conn()
-    placeholders = ",".join("?" * len(active_urls))
-    conn.execute(f"""
-        UPDATE jobs SET active = 0
-        WHERE source_ats = ? AND company = ? AND url NOT IN ({placeholders}) AND active = 1
-    """, [source_ats, company] + list(active_urls))
-    conn.commit()
-    conn.close()
+    try:
+        active_urls = {url for url in active_urls if url}
+        if active_urls:
+            conn.execute("CREATE TEMP TABLE IF NOT EXISTS scrape_urls (url TEXT PRIMARY KEY)")
+            conn.execute("DELETE FROM scrape_urls")
+            conn.executemany(
+                "INSERT OR IGNORE INTO scrape_urls (url) VALUES (?)",
+                [(url,) for url in active_urls],
+            )
+            conn.execute("""
+                UPDATE jobs SET active = 0
+                WHERE source_ats = ?
+                  AND company = ?
+                  AND active = 1
+                  AND NOT EXISTS (
+                      SELECT 1 FROM scrape_urls WHERE scrape_urls.url = jobs.url
+                  )
+            """, (source_ats, company))
+        else:
+            conn.execute("""
+                UPDATE jobs SET active = 0
+                WHERE source_ats = ? AND company = ? AND active = 1
+            """, (source_ats, company))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def get_all_jobs(category=None, search=None, active_only=True, include_applied=False, since=None):

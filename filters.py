@@ -211,19 +211,14 @@ def requires_phd(title, description=""):
     text = (title + " " + description).lower()
 
     # Strong PhD requirement signals
-    phd_required = [
-        "phd required",
-        "ph.d. required",
-        "ph.d required",
-        "requires a phd",
-        "requires ph.d",
-        "must have a phd",
-        "must have ph.d",
-        "phd in ",
-        "ph.d. in ",
+    phd_required_patterns = [
+        r'\bph\.?d\.?\s+(is\s+)?required\b',
+        r'\brequires?\s+(a\s+)?ph\.?d\.?\b',
+        r'\bmust\s+have\s+(a\s+)?ph\.?d\.?\b',
+        r'\bdoctoral\s+degree\s+(is\s+)?required\b',
     ]
-    for phrase in phd_required:
-        if phrase in text:
+    for pattern in phd_required_patterns:
+        if re.search(pattern, text):
             return True
 
     # Title contains PhD explicitly
@@ -281,7 +276,7 @@ def categorize(title, description=""):
     d = description.lower() if description else ""
     combined = t + " " + d
 
-    is_intern = bool(re.search(r'\bintern\b', combined))
+    is_intern = bool(re.search(r'\bintern(ship)?s?\b', combined))
 
     # New grad must have an explicit graduation / campus / new-graduate signal.
     new_grad_patterns = [

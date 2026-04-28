@@ -18,7 +18,7 @@ companies:
   ats: playwright
   url: https://explore.jobs.netflix.net/careers?query=software%20engineer&location=United%20States
 - name: Nvidia
-  ats: generic
+  ats: workday
   url: https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
 - name: Intel
   ats: workday

@@ -24,9 +24,9 @@ APP_SECRET_KEY = os.environ.get("APP_SECRET_KEY") or secrets.token_hex(32)
 # Discord webhook for new-job notifications. Leave blank to disable.
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 
-MAX_WORKERS = 10  # concurrent scraper threads
-REQUEST_TIMEOUT = 30  # seconds per HTTP request
-RATE_LIMIT_DELAY = 0.5  # seconds between requests to same ATS
+MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "20"))  # concurrent scraper threads
+REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", "20"))  # seconds per HTTP request
+RATE_LIMIT_DELAY = float(os.environ.get("RATE_LIMIT_DELAY", "0.25"))  # seconds between paged requests
 
 # Backend SWE keywords — job title must match at least one
 INCLUDE_KEYWORDS = [
@@ -73,4 +73,12 @@ EXCLUDE_KEYWORDS = [
     "financial analyst",
     "legal", "paralegal",
     "administrative",
+    # Electrical / hardware roles
+    "electrical engineer", "electrical engineering", "electrical",
+    "hardware engineer", "hardware engineering", "hardware",
+    "electronics engineer", "electronics engineering", "electronics",
+    "silicon", "semiconductor", "chip",
+    "asic", "fpga", "rtl", "vlsi", "soc",
+    "circuit", "circuits", "analog", "mixed signal", "mixed-signal",
+    "pcb", "board design", "signal integrity", "power electronics",
 ]
