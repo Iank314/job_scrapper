@@ -8,9 +8,9 @@ DEFAULT_SEARCH_TERMS = (
     "fall 2026",
     "spring 2027",
     "summer 2027",
-    "intern",
-    "new grad",
-    "university graduate",
+    "2027 new grad",
+    "2027 university graduate",
+    "class of 2027",
 )
 
 LOCALE_RE = re.compile(r"^[a-z]{2}-[A-Z]{2}$")

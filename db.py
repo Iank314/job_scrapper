@@ -1,6 +1,15 @@
+import re
 import sqlite3
 from datetime import datetime
 from config import DB_PATH
+from filters import ALLOWED_CATEGORIES, categorize, is_us_location
+
+NON_TARGET_TITLE_CYCLE_RE = re.compile(
+    r'\b(?:fall|autumn)\s*2027\b|'
+    r'\b(?:spring|winter|summer)\s*2026\b|'
+    r'\b(?:fall|autumn|spring|winter|summer)\s*2025\b',
+    re.IGNORECASE,
+)
 
 
 def get_conn():
@@ -53,6 +62,22 @@ def init_db():
     )
     conn.commit()
     conn.close()
+
+
+def _passes_current_display_filters(job):
+    category = job.get("category")
+    title = job.get("title") or ""
+    if category not in ALLOWED_CATEGORIES:
+        return False
+    if not is_us_location(job.get("location") or ""):
+        return False
+    if NON_TARGET_TITLE_CYCLE_RE.search(title):
+        return False
+
+    title_category = categorize(title)
+    if title_category is not None and title_category != category:
+        return False
+    return True
 
 
 def sync_company_jobs(company, source_ats, jobs, active_urls):
@@ -211,7 +236,8 @@ def get_all_jobs(category=None, search=None, active_only=True, include_applied=F
     query += " ORDER BY date_scraped DESC"
     rows = conn.execute(query, params).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    jobs = [dict(r) for r in rows]
+    return [job for job in jobs if _passes_current_display_filters(job)]
 
 
 def get_applied_jobs(search=None):
@@ -268,19 +294,23 @@ def mark_trashed(job_id, trashed=True):
 
 def get_stats():
     conn = get_conn()
-    total = conn.execute(
-        "SELECT COUNT(*) FROM jobs WHERE active = 1 AND applied = 0 AND trashed = 0"
-    ).fetchone()[0]
+    open_rows = conn.execute(
+        "SELECT * FROM jobs WHERE active = 1 AND applied = 0 AND trashed = 0"
+    ).fetchall()
+    open_jobs = [
+        dict(row) for row in open_rows
+        if _passes_current_display_filters(dict(row))
+    ]
+    total = len(open_jobs)
     applied = conn.execute("SELECT COUNT(*) FROM jobs WHERE applied = 1").fetchone()[0]
     trashed = conn.execute("SELECT COUNT(*) FROM jobs WHERE trashed = 1").fetchone()[0]
-    categories = conn.execute(
-        "SELECT category, COUNT(*) as cnt FROM jobs "
-        "WHERE active = 1 AND applied = 0 AND trashed = 0 GROUP BY category"
-    ).fetchall()
+    categories = {}
+    for job in open_jobs:
+        categories[job["category"]] = categories.get(job["category"], 0) + 1
     conn.close()
     return {
         "total": total,
         "applied": applied,
         "trashed": trashed,
-        "categories": {r[0]: r[1] for r in categories},
+        "categories": categories,
     }

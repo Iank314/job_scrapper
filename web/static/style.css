@@ -158,11 +158,6 @@ a:hover {
     color: #d070f0;
 }
 
-.category-badge.uncategorized {
-    background: #1e1e1e;
-    color: #888;
-}
-
 .empty-state {
     text-align: center;
     padding: 60px 20px;

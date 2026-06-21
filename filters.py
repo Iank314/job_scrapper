@@ -1,6 +1,15 @@
 import re
 from config import INCLUDE_KEYWORDS, EXCLUDE_KEYWORDS
 
+ALLOWED_CATEGORIES = {
+    "Fall 2026 Intern",
+    "Fall 2026 New Grad",
+    "Spring 2027 Intern",
+    "Spring 2027 New Grad",
+    "Summer 2027 Intern",
+    "Summer 2027 New Grad",
+}
+
 # US state abbreviations — matched via regex with word boundaries
 US_STATE_ABBREVS = [
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
@@ -12,7 +21,7 @@ US_STATE_ABBREVS = [
 
 # Build a regex that matches ", XX" or " XX" where XX is a state abbrev at end or before punctuation
 _state_pattern = re.compile(
-    r'(?:,\s*|;\s*|\s-\s)(' + '|'.join(US_STATE_ABBREVS) + r')(?:\s|$|,|;)',
+    r'(?:^|,\s*|;\s*|\s-\s|\s+)(' + '|'.join(US_STATE_ABBREVS) + r')(?:\s|$|,|;)',
     re.IGNORECASE
 )
 
@@ -32,11 +41,16 @@ US_INDICATORS = [
     "woodinville", "cottonwood heights", "honolulu", "tempe",
     "costa mesa", "huntsville",
     # Full state names
-    "california", "washington", "massachusetts", "texas", "illinois",
-    "colorado", "arizona", "utah", "georgia", "virginia", "oregon",
-    "pennsylvania", "new jersey", "maryland", "connecticut", "florida",
-    "north carolina", "tennessee", "minnesota", "michigan", "ohio",
-    "district of columbia", "alabama",
+    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
+    "connecticut", "delaware", "florida", "georgia", "hawaii", "idaho",
+    "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana",
+    "maine", "maryland", "massachusetts", "michigan", "minnesota",
+    "mississippi", "missouri", "montana", "nebraska", "nevada",
+    "new hampshire", "new jersey", "new mexico", "new york",
+    "north carolina", "north dakota", "ohio", "oklahoma", "oregon",
+    "pennsylvania", "rhode island", "south carolina", "south dakota",
+    "tennessee", "texas", "utah", "vermont", "virginia", "washington",
+    "west virginia", "wisconsin", "wyoming", "district of columbia",
     # General US indicators
     "united states",
 ]
@@ -134,14 +148,14 @@ def matches_backend_swe(title):
 def is_us_location(location):
     """Return True only if the location is clearly in the US."""
     if not location or not location.strip():
-        return True  # No location specified — keep it
+        return False
 
     loc = location.lower().strip()
 
-    # Generic/ambiguous labels — keep
+    # Generic/ambiguous labels do not prove US eligibility.
     if loc in ("n/a", "tbd", "various", "multiple", "hybrid", "flexible",
                "in-office", "on-site", "onsite"):
-        return True
+        return False
 
     # Company-specific flexible locations (e.g., "Flexible - Any SpaceX Site")
     if "spacex" in loc or "any site" in loc:
@@ -184,12 +198,12 @@ def is_us_location(location):
     if has_us:
         return True
 
-    # "Remote" alone without a country qualifier — assume US
+    # "Remote" alone without a country qualifier is ambiguous.
     if loc in ("remote",):
-        return True
+        return False
 
-    # "Remote - X" where X could be a country — check if X is US
-    remote_match = re.match(r'remote\s*[-–—,]\s*(.+)', loc)
+    # "Remote - X" where X could be a country; check if X is US.
+    remote_match = re.match(r'remote\s*[-,]\s*(.+)', loc)
     if remote_match:
         remainder = remote_match.group(1).strip()
         # Check if the remainder is a US state or "US"/"USA"
@@ -204,6 +218,24 @@ def is_us_location(location):
 
     # Unknown location — reject to be safe (no US signal found)
     return False
+
+
+def extract_us_location(text):
+    """Best-effort US location extraction from nearby card/listing text."""
+    if not text:
+        return ""
+
+    parts = re.split(r'[\n|;]+', text)
+    for part in parts:
+        candidate = re.sub(r'\s+', ' ', part).strip(" -,\t")
+        if 2 <= len(candidate) <= 140 and is_us_location(candidate):
+            return candidate
+
+    compact = re.sub(r'\s+', ' ', text).strip()
+    if len(compact) <= 180 and is_us_location(compact):
+        return compact
+
+    return ""
 
 
 def requires_phd(title, description=""):
@@ -232,7 +264,7 @@ def _season_from(text):
     """Return 'fall' / 'spring' / 'summer' if the text has one and only one
     season signal, else None. 'winter' counts as 'spring' (spring co-op).
     """
-    has_fall = bool(re.search(r'\bfall\b', text))
+    has_fall = bool(re.search(r'\b(fall|autumn)\b', text))
     has_spring = bool(re.search(r'\b(spring|winter)\b', text))
     has_summer = bool(re.search(r'\bsummer\b', text))
     seasons = [s for s, h in (("fall", has_fall), ("spring", has_spring), ("summer", has_summer)) if h]
@@ -259,14 +291,8 @@ def categorize(title, description=""):
     Only if the title has no season signal does the description get
     consulted.
 
-    Returns one of:
-        'Fall 2026 Intern'
-        'Spring 2027 Intern'
-        'Summer 2027 Intern'
-        'Summer 2027 New Grad'
-        'Intern (Uncategorized)'
-        'New Grad (Uncategorized)'
-        None  (if it doesn't match or is a past cycle)
+    Returns one of ALLOWED_CATEGORIES, or None if the title/description does
+    not match one of the target cycles.
     """
     # Seniority check — defensive, in case categorize() is called directly.
     if is_senior_role(title):
@@ -276,7 +302,7 @@ def categorize(title, description=""):
     d = description.lower() if description else ""
     combined = t + " " + d
 
-    is_intern = bool(re.search(r'\bintern(ship)?s?\b', combined))
+    is_intern = bool(re.search(r'\b(intern(ship)?s?|co[-\s]?ops?)\b', combined))
 
     # New grad must have an explicit graduation / campus / new-graduate signal.
     new_grad_patterns = [
@@ -293,9 +319,7 @@ def categorize(title, description=""):
     # Past cycle exclusion — if the TITLE explicitly names a past cycle, drop.
     # (Description alone isn't enough because it can mention past cycles in
     # prose.)
-    if re.search(r'\bsummer\s*2026\b', t):
-        return None
-    if re.search(r'\b(spring|winter)\s*2026\b', t):
+    if re.search(r'\b(spring|winter|summer)\s*2026\b', t):
         return None
 
     # Resolve season: title wins. Description is a tiebreaker only when the
@@ -307,29 +331,34 @@ def categorize(title, description=""):
 
     if is_intern:
         # Require BOTH season AND year to assign a specific bucket.
-        # "Summer Intern" without a year is ambiguous — could be 2026 or 2027.
+        # "Summer Intern" without a year is ambiguous and should not be saved.
         if season and year:
             if season == "summer" and year == 2026:
                 return None  # past cycle
             if season == "spring" and year == 2026:
                 return None  # past cycle
-            if season == "fall" and year in (2026, 2027):
+            if season == "fall" and year == 2026:
                 return "Fall 2026 Intern"
             if season == "spring" and year == 2027:
                 return "Spring 2027 Intern"
             if season == "summer" and year == 2027:
                 return "Summer 2027 Intern"
 
-        # Season without year, or year without season — not enough to
-        # categorize confidently. A "Summer Intern" in April 2026 is
-        # almost certainly 2026, not 2027.
-        return "Intern (Uncategorized)"
+        return None
 
     if is_new_grad:
-        if year == 2027:
+        if season and year:
+            if season == "fall" and year == 2026:
+                return "Fall 2026 New Grad"
+            if season == "spring" and year == 2027:
+                return "Spring 2027 New Grad"
+            if season == "summer" and year == 2027:
+                return "Summer 2027 New Grad"
+
+        # Common phrasing such as "Class of 2027" often omits an explicit
+        # start season. Keep it only when there is no conflicting season.
+        if year == 2027 and season is None:
             return "Summer 2027 New Grad"
-        if year == 2026:
-            return None  # past cycle
-        return "New Grad (Uncategorized)"
+        return None
 
     return None

@@ -1,10 +1,8 @@
-"""Re-apply current filters to existing jobs.db rows and delete anything
-that no longer passes. Run this after tightening filters in filters.py to
-clear stale rows that were scraped under the old rules.
+"""Re-apply current filters to existing jobs.db rows.
 
-Deletes a row if its title fails matches_backend_swe() — that check is
-title-only, so it's safe to apply retroactively without descriptions.
-Rows that only fail categorization (which needs description) are left alone.
+Run this after tightening filters in filters.py to clear stale rows that were
+scraped under older, looser rules. The cleanup is intentionally title/location
+based because historical rows do not store full descriptions.
 """
 import os
 import sqlite3
@@ -14,18 +12,26 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from config import DB_PATH
-from filters import matches_backend_swe, is_senior_role
+from filters import categorize, is_senior_role, is_us_location, matches_backend_swe, requires_phd
 
 
 def main(dry_run=False):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id, company, title, category FROM jobs")
+    c.execute("SELECT id, company, title, category, location FROM jobs")
     rows = c.fetchall()
 
     to_delete = []
-    reasons = {"senior": 0, "not_backend": 0}
-    for row_id, company, title, category in rows:
+    to_update = []
+    reasons = {
+        "senior": 0,
+        "not_backend": 0,
+        "phd": 0,
+        "non_us": 0,
+        "wrong_cycle": 0,
+    }
+
+    for row_id, company, title, category, location in rows:
         if is_senior_role(title):
             to_delete.append((row_id, company, title, category, "senior"))
             reasons["senior"] += 1
@@ -33,11 +39,32 @@ def main(dry_run=False):
         if not matches_backend_swe(title):
             to_delete.append((row_id, company, title, category, "not_backend"))
             reasons["not_backend"] += 1
+            continue
+        if requires_phd(title):
+            to_delete.append((row_id, company, title, category, "phd"))
+            reasons["phd"] += 1
+            continue
+        if not is_us_location(location or ""):
+            to_delete.append((row_id, company, title, category, "non_us"))
+            reasons["non_us"] += 1
+            continue
+
+        current_category = categorize(title)
+        if current_category is None:
+            to_delete.append((row_id, company, title, category, "wrong_cycle"))
+            reasons["wrong_cycle"] += 1
+            continue
+        if current_category != category:
+            to_update.append((row_id, company, title, category, current_category))
 
     print(f"Total rows:    {len(rows)}")
     print(f"Would delete:  {len(to_delete)}")
     print(f"  senior:      {reasons['senior']}")
     print(f"  not_backend: {reasons['not_backend']}")
+    print(f"  phd:         {reasons['phd']}")
+    print(f"  non_us:      {reasons['non_us']}")
+    print(f"  wrong_cycle: {reasons['wrong_cycle']}")
+    print(f"Would update:  {len(to_update)}")
     print(f"Remaining:     {len(rows) - len(to_delete)}")
     print()
 
@@ -48,16 +75,30 @@ def main(dry_run=False):
         if len(to_delete) > 15:
             print(f"  ... and {len(to_delete) - 15} more")
 
+    if to_update:
+        print("\nSample of rows to update:")
+        for row_id, company, title, old_category, new_category in to_update[:15]:
+            print(f"  [{old_category} -> {new_category}] {company} | {title}")
+        if len(to_update) > 15:
+            print(f"  ... and {len(to_update) - 15} more")
+
     if dry_run:
-        print("\nDRY RUN — no changes made. Pass --apply to delete.")
+        print("\nDRY RUN - no changes made. Pass --apply to delete/update.")
+        conn.close()
         return
 
     if to_delete:
         ids = [row[0] for row in to_delete]
         placeholders = ",".join("?" * len(ids))
         c.execute(f"DELETE FROM jobs WHERE id IN ({placeholders})", ids)
-        conn.commit()
         print(f"\nDeleted {len(to_delete)} rows.")
+    if to_update:
+        c.executemany(
+            "UPDATE jobs SET category = ? WHERE id = ?",
+            [(row[4], row[0]) for row in to_update],
+        )
+        print(f"Updated {len(to_update)} rows.")
+    conn.commit()
     conn.close()
 
 

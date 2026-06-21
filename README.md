@@ -3,7 +3,10 @@
 Scrapes career pages of 250+ companies for backend SWE internships and new grad roles. Filters out non-engineering positions and categorizes results into:
 
 - **Fall 2026 Intern**
+- **Fall 2026 New Grad**
 - **Spring 2027 Intern**
+- **Spring 2027 New Grad**
+- **Summer 2027 Intern**
 - **Summer 2027 New Grad**
 
 Results are displayed in a local web UI with search, filtering, and sorting.

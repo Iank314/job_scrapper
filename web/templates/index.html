@@ -25,11 +25,11 @@
             <select id="category">
                 <option value="All">All Categories</option>
                 <option value="Fall 2026 Intern">Fall 2026 Intern</option>
+                <option value="Fall 2026 New Grad">Fall 2026 New Grad</option>
                 <option value="Spring 2027 Intern">Spring 2027 Intern</option>
+                <option value="Spring 2027 New Grad">Spring 2027 New Grad</option>
                 <option value="Summer 2027 Intern">Summer 2027 Intern</option>
                 <option value="Summer 2027 New Grad">Summer 2027 New Grad</option>
-                <option value="Intern (Uncategorized)">Intern (Uncategorized)</option>
-                <option value="New Grad (Uncategorized)">New Grad (Uncategorized)</option>
             </select>
             <label>
                 <input type="checkbox" id="activeOnly" checked> Active only
@@ -84,13 +84,13 @@
         let authed = false;
 
         function categoryClass(cat) {
-            if (!cat) return "uncategorized";
+            if (!cat) return "";
             if (cat.includes("Fall 2026")) return "fall-2026";
             if (cat.includes("Spring 2027")) return "spring-2027";
             if (cat.includes("Summer 2027") && cat.includes("New Grad")) return "new-grad";
             if (cat.includes("Summer 2027")) return "summer-2027";
             if (cat.includes("New Grad")) return "new-grad";
-            return "uncategorized";
+            return "";
         }
 
         function renderJobs(jobs) {

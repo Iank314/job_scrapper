@@ -2,6 +2,7 @@ import re
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from scraper.base import BaseScraper
+from filters import extract_us_location
 
 
 class ICIMSScraper(BaseScraper):
@@ -53,10 +54,12 @@ class ICIMSScraper(BaseScraper):
             if full in seen:
                 continue
             seen.add(full)
+            parent = link.find_parent(["li", "tr", "article", "section", "div"])
+            context = parent.get_text(" | ", strip=True) if parent else ""
             results.append({
                 "title": title,
                 "url": full,
-                "location": "",
+                "location": extract_us_location(context),
                 "date_posted": "",
             })
 

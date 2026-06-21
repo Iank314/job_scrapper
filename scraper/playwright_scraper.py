@@ -14,6 +14,7 @@ import re
 from urllib.parse import urljoin, urlparse
 
 from scraper.base import BaseScraper
+from filters import extract_us_location
 
 NAV_TIMEOUT_MS = 20_000       # hard timeout for page.goto
 NETWORKIDLE_TIMEOUT_MS = 8000  # shorter — many sites never reach networkidle
@@ -27,12 +28,23 @@ USER_AGENT = (
 )
 
 # Links whose text matches this pattern are considered candidate job postings.
+TARGET_CYCLE_PATTERN = (
+    r'\b(?:fall|autumn)\s*2026\b|'
+    r'\b(?:spring|winter|summer)\s*2027\b|'
+    r'\bclass\s*of\s*2027\b|'
+    r'\b2027\b.{0,50}\b(?:new\s*grad|university\s*grad|graduate)\b|'
+    r'\b(?:new\s*grad|university\s*grad|graduate)\b.{0,50}\b2027\b'
+)
+
+TARGET_ROLE_PATTERN = (
+    r'\b(?:intern(ship)?s?|co[-\s]?ops?|new\s*grad|university\s*grad|'
+    r'software\s*engineer|\bswe\b|backend|back[-\s]end|platform|'
+    r'infrastructure|\bsre\b|devops|data\s*engineer|ml\s*engineer|'
+    r'systems\s*engineer|security\s*engineer|reliability|distributed)\b'
+)
+
 JOB_TEXT_PATTERN = re.compile(
-    r'intern|new\s*grad|university\s*grad|campus|graduate\s*program|'
-    r'recent\s*graduate|class\s*of\s*20\d\d|'
-    r'software\s*engineer|\bswe\b|backend|back[-\s]end|platform|infrastructure|'
-    r'\bsre\b|devops|data\s*engineer|ml\s*engineer|systems\s*engineer|'
-    r'security\s*engineer|reliability|distributed',
+    r'(?=.*(?:' + TARGET_CYCLE_PATTERN + r'))(?=.*(?:' + TARGET_ROLE_PATTERN + r'))',
     re.IGNORECASE
 )
 
@@ -224,16 +236,18 @@ def _generic_extract(page, company_cfg):
                     const href = a.href || '';
                     // Walk up a few levels to find a richer title
                     let ctx = '';
+                    let ctxFull = '';
                     let node = a.parentElement;
                     for (let i = 0; i < 4 && node; i++) {
                         const t = (node.innerText || '').trim();
                         if (t && t.length > text.length && t.length < 400) {
+                            ctxFull = t;
                             ctx = t.split('\\n')[0].trim();
                             break;
                         }
                         node = node.parentElement;
                     }
-                    out.push({ text, href, ctx });
+                    out.push({ text, href, ctx, ctxFull });
                 }
                 return out;
             }
@@ -245,6 +259,7 @@ def _generic_extract(page, company_cfg):
         text = (link.get("text") or "").strip()
         href = (link.get("href") or "").strip()
         ctx = (link.get("ctx") or "").strip()
+        ctx_full = (link.get("ctxFull") or ctx).strip()
 
         if not href or HREF_SKIP_PATTERN.search(href):
             continue
@@ -276,7 +291,7 @@ def _generic_extract(page, company_cfg):
         results.append({
             "title": title,
             "url": abs_href,
-            "location": "",
+            "location": extract_us_location(ctx_full),
             "date_posted": "",
         })
 
