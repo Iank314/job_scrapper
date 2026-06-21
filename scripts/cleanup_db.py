@@ -12,7 +12,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from config import DB_PATH
-from filters import categorize, is_senior_role, is_us_location, matches_backend_swe, requires_phd
+from filters import (
+    ALLOWED_CATEGORIES,
+    categorize,
+    cycle_compatible,
+    is_senior_role,
+    is_us_location,
+    matches_backend_swe,
+    requires_phd,
+)
 
 
 def main(dry_run=False):
@@ -49,12 +57,18 @@ def main(dry_run=False):
             reasons["non_us"] += 1
             continue
 
+        # Cleanup is title-only (historical rows don't store descriptions), so a
+        # title that yields no cycle is NOT proof the row is stale — the cycle
+        # may have come from the description. Only delete when the title can't
+        # reclassify it AND the stored category is no longer a valid target.
         current_category = categorize(title)
         if current_category is None:
+            if category in ALLOWED_CATEGORIES:
+                continue
             to_delete.append((row_id, company, title, category, "wrong_cycle"))
             reasons["wrong_cycle"] += 1
             continue
-        if current_category != category:
+        if not cycle_compatible(current_category, category) or category not in ALLOWED_CATEGORIES:
             to_update.append((row_id, company, title, category, current_category))
 
     print(f"Total rows:    {len(rows)}")

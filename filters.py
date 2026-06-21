@@ -1,13 +1,21 @@
 import re
 from config import INCLUDE_KEYWORDS, EXCLUDE_KEYWORDS
 
+# Cycles relevant to a ~May 2027 graduate. Internships must fall before
+# graduation (Spring/Summer 2027); new-grad / early-career roles start on or
+# after it (Summer/Fall 2027, plus the season-less "2027 New Grad" bucket for
+# campus / class-of-2027 / "graduating Dec 2026 - June 2027" postings).
+# Fall 2026 Intern was dropped — that recruiting season is over.
 ALLOWED_CATEGORIES = {
-    "Fall 2026 Intern",
-    "Fall 2026 New Grad",
+    # Internships — still enrolled.
     "Spring 2027 Intern",
-    "Spring 2027 New Grad",
     "Summer 2027 Intern",
+    # New grad / early career — full-time, starts on/after May 2027 grad.
+    "Fall 2026 New Grad",
+    "Spring 2027 New Grad",
     "Summer 2027 New Grad",
+    "Fall 2027 New Grad",
+    "2027 New Grad",
 }
 
 # US state abbreviations — matched via regex with word boundaries
@@ -272,7 +280,11 @@ def _season_from(text):
 
 
 def _year_from(text):
-    """Return 2026 or 2027 if exactly one year is present, else None."""
+    """Return 2026 or 2027 if exactly one of them is present, else None.
+
+    Ambiguous when both appear (e.g. a "Dec 2026 - June 2027" grad window).
+    The new-grad path resolves those windows via _grad_window_targets_2027().
+    """
     has_2026 = "2026" in text
     has_2027 = "2027" in text
     if has_2026 and not has_2027:
@@ -282,17 +294,160 @@ def _year_from(text):
     return None
 
 
+# Explicit "{season} {year}" tokens, normalizing autumn->fall, winter->spring.
+_CYCLE_TOKEN_RE = re.compile(
+    r'\b(fall|autumn|spring|winter|summer)\s*(20\d{2})\b', re.IGNORECASE
+)
+
+
+def _explicit_cycles(text):
+    """Ordered list of (season, year) cycle tokens found in the text.
+
+    Lets a multi-cycle posting like "SWE Intern - Fall 2026 / Spring 2027" be
+    recognized instead of being dropped as ambiguous.
+    """
+    cycles = []
+    for m in _CYCLE_TOKEN_RE.finditer(text):
+        season = m.group(1).lower()
+        season = {"autumn": "fall", "winter": "spring"}.get(season, season)
+        cycles.append((season, int(m.group(2))))
+    return cycles
+
+
+# A graduation keyword followed (within ~80 chars) by a 2027 date. Captures
+# eligibility windows like "graduating December 2026 - June 2027" that name
+# BOTH years and would otherwise read as ambiguous to _year_from().
+_GRAD_KEYWORD_RE = re.compile(
+    r'\b(?:graduat\w*|degree\s+completion|complete\s+your\s+degree|'
+    r'expected\s+graduation|conferral)\b',
+    re.IGNORECASE,
+)
+
+
+def _grad_window_targets_2027(text):
+    """True if a graduation window/date in the text includes 2027."""
+    if not text or "2027" not in text:
+        return False
+    for m in _GRAD_KEYWORD_RE.finditer(text):
+        if "2027" in text[m.start(): m.start() + 80]:
+            return True
+    return False
+
+
+# Signals that a role is new-grad / early-career / campus (vs. an internship).
+# These are the phrasings ATS postings use for the 2026-2027 graduating class:
+# "new grad", "university graduate", "campus graduate program", "early career",
+# "class of 2027", "graduating December 2026 - June 2027".
+NEW_GRAD_PATTERNS = [
+    r'\bnew\s*grad(uate)?s?\b',
+    r'\buniversity\s+(?:grad(?:uate)?s?|hire[sd]?|hiring|program|recruit\w*)\b',
+    r'\bcampus\s+(?:hire[sd]?|hiring|recruit\w*|grad(?:uate)?s?|program)\b',
+    r'\brecent\s*grad(uate)?s?\b',
+    r'\bgraduate\s+(?:software\s+)?(?:engineer|developer|swe)\b',
+    r'\bgraduate\s+(?:program|rotation\w*|scheme|hir(?:e|ing))\b',
+    r'\bearly[-\s]?career\b',
+    r'\bentry[-\s]?level\b',
+    r'\bclass\s*of\s*20(2[6-9]|3\d)\b',
+    r'\bgraduat(?:e|es|ing|ion)\s*(?:in|by|date|between)?\s*(?:\w+\s+)?20(2[6-9]|3\d)\b',
+]
+_NEW_GRAD_RE = [re.compile(p, re.IGNORECASE) for p in NEW_GRAD_PATTERNS]
+
+
+# (season, year) -> category, per role type.
+_INTERN_CYCLES = {
+    ("spring", 2027): "Spring 2027 Intern",
+    ("summer", 2027): "Summer 2027 Intern",
+}
+_INTERN_ORDER = ["Spring 2027 Intern", "Summer 2027 Intern"]
+
+_NEWGRAD_CYCLES = {
+    ("fall", 2026): "Fall 2026 New Grad",
+    ("spring", 2027): "Spring 2027 New Grad",
+    ("summer", 2027): "Summer 2027 New Grad",
+    ("fall", 2027): "Fall 2027 New Grad",
+}
+_NEWGRAD_ORDER = [
+    "Fall 2026 New Grad", "Spring 2027 New Grad",
+    "Summer 2027 New Grad", "Fall 2027 New Grad",
+]
+
+# The season-less "2027 New Grad" bucket and the specific 2027 new-grad cycles.
+_GENERAL_2027 = "2027 New Grad"
+_SPECIFIC_2027_NG = {"Spring 2027 New Grad", "Summer 2027 New Grad", "Fall 2027 New Grad"}
+
+
+def cycle_compatible(title_category, stored_category):
+    """True if a title-derived category doesn't contradict the stored one.
+
+    "2027 New Grad" (no season in the title) is treated as compatible with any
+    specific 2027 new-grad cycle — that's a refinement, not a conflict — so a
+    description-derived season isn't wrongly rejected at display time.
+    """
+    if title_category == stored_category:
+        return True
+    pair = {title_category, stored_category}
+    if _GENERAL_2027 in pair and (pair - {_GENERAL_2027}) <= _SPECIFIC_2027_NG:
+        return True
+    return False
+
+
+def _past_cycle_in_title(t):
+    """Title explicitly names a past 2026 cycle. Fall 2026 stays valid for new
+    grad, so only spring/winter/summer 2026 count as past here."""
+    return bool(re.search(r'\b(spring|winter|summer)\s*2026\b', t))
+
+
+def _soonest(valid, order):
+    return sorted(set(valid), key=order.index)[0] if valid else None
+
+
+def _intern_category(t, d):
+    valid = [_INTERN_CYCLES[c] for c in (_explicit_cycles(t) or _explicit_cycles(d))
+             if c in _INTERN_CYCLES]
+    soonest = _soonest(valid, _INTERN_ORDER)
+    if soonest:
+        return soonest
+    if _past_cycle_in_title(t):
+        return None
+    # Require BOTH a single season AND year — "Summer Intern" with no year is
+    # ambiguous and should not be saved.
+    season = _season_from(t) or _season_from(d)
+    year = _year_from(t) or _year_from(d)
+    if season and year:
+        return _INTERN_CYCLES.get((season, year))
+    return None
+
+
+def _newgrad_category(t, d, combined):
+    valid = [_NEWGRAD_CYCLES[c] for c in (_explicit_cycles(t) or _explicit_cycles(d))
+             if c in _NEWGRAD_CYCLES]
+    soonest = _soonest(valid, _NEWGRAD_ORDER)
+    if soonest:
+        return soonest
+    if _past_cycle_in_title(t):
+        return None
+    season = _season_from(t) or _season_from(d)
+    year = _year_from(t) or _year_from(d)
+    if season and year and (season, year) in _NEWGRAD_CYCLES:
+        return _NEWGRAD_CYCLES[(season, year)]
+    # A grad window ("Dec 2026 - June 2027") or an explicit 2027 mention puts
+    # the role in the 2027 class; use the season if one is known.
+    if year == 2027 or "2027" in combined or _grad_window_targets_2027(combined):
+        if season in ("fall", "spring", "summer"):
+            return _NEWGRAD_CYCLES[(season, 2027)]
+        return _GENERAL_2027
+    return None
+
+
 def categorize(title, description=""):
-    """Determine the category based on job title AND description text.
+    """Determine the target cycle from the job title and description text.
 
-    Season is resolved from the TITLE first — descriptions often mention
-    multiple cycles (e.g. "we hire in Spring, Summer, and Fall"), which
-    previously caused a clearly-Summer role to get mis-tagged as Spring.
-    Only if the title has no season signal does the description get
-    consulted.
+    The TITLE is authoritative for season/year — descriptions often name
+    several cycles in prose (e.g. "we hire in Spring, Summer, and Fall"), which
+    would otherwise mis-tag a role. The description is only a tiebreaker.
 
-    Returns one of ALLOWED_CATEGORIES, or None if the title/description does
-    not match one of the target cycles.
+    Returns one of ALLOWED_CATEGORIES, or None if the role is not a target
+    intern / new-grad cycle for the ~May 2027 graduating class.
     """
     # Seniority check — defensive, in case categorize() is called directly.
     if is_senior_role(title):
@@ -303,62 +458,13 @@ def categorize(title, description=""):
     combined = t + " " + d
 
     is_intern = bool(re.search(r'\b(intern(ship)?s?|co[-\s]?ops?)\b', combined))
+    is_new_grad = any(rx.search(combined) for rx in _NEW_GRAD_RE)
 
-    # New grad must have an explicit graduation / campus / new-graduate signal.
-    new_grad_patterns = [
-        r'\bnew\s*grad(uate)?s?\b',
-        r'\buniversity\s*grad(uate)?s?\b',
-        r'\bcampus\s*(hire|hiring|recruit)',
-        r'\brecent\s*grad(uate)?s?\b',
-        r'\bclass\s*of\s*20(2[6-9]|3\d)\b',
-        r'\bgraduating\s*(in\s*)?20(2[6-9]|3\d)\b',
-        r'\bgraduat(es|ing)\s*(in\s*)?20(2[6-9]|3\d)\b',
-    ]
-    is_new_grad = any(re.search(p, combined) for p in new_grad_patterns)
-
-    # Past cycle exclusion — if the TITLE explicitly names a past cycle, drop.
-    # (Description alone isn't enough because it can mention past cycles in
-    # prose.)
-    if re.search(r'\b(spring|winter|summer)\s*2026\b', t):
-        return None
-
-    # Resolve season: title wins. Description is a tiebreaker only when the
-    # title has no season.
-    season = _season_from(t) or _season_from(d)
-
-    # Resolve year: title wins. Description tiebreaker.
-    year = _year_from(t) or _year_from(d)
-
+    category = None
     if is_intern:
-        # Require BOTH season AND year to assign a specific bucket.
-        # "Summer Intern" without a year is ambiguous and should not be saved.
-        if season and year:
-            if season == "summer" and year == 2026:
-                return None  # past cycle
-            if season == "spring" and year == 2026:
-                return None  # past cycle
-            if season == "fall" and year == 2026:
-                return "Fall 2026 Intern"
-            if season == "spring" and year == 2027:
-                return "Spring 2027 Intern"
-            if season == "summer" and year == 2027:
-                return "Summer 2027 Intern"
-
-        return None
-
-    if is_new_grad:
-        if season and year:
-            if season == "fall" and year == 2026:
-                return "Fall 2026 New Grad"
-            if season == "spring" and year == 2027:
-                return "Spring 2027 New Grad"
-            if season == "summer" and year == 2027:
-                return "Summer 2027 New Grad"
-
-        # Common phrasing such as "Class of 2027" often omits an explicit
-        # start season. Keep it only when there is no conflicting season.
-        if year == 2027 and season is None:
-            return "Summer 2027 New Grad"
-        return None
-
-    return None
+        category = _intern_category(t, d)
+    # A posting can mention "internship" in prose yet actually be a new-grad
+    # role; if the intern path found no cycle, fall through to the new-grad one.
+    if category is None and is_new_grad:
+        category = _newgrad_category(t, d, combined)
+    return category

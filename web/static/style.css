@@ -251,6 +251,12 @@ a:hover {
     border-color: #50a0f0;
 }
 
+.btn-row.btn-accept:hover {
+    background: #0e2d28;
+    color: #50f0c0;
+    border-color: #50f0c0;
+}
+
 .actions-cell {
     white-space: nowrap;
 }

@@ -2,12 +2,14 @@ import re
 import sqlite3
 from datetime import datetime
 from config import DB_PATH
-from filters import ALLOWED_CATEGORIES, categorize, is_us_location
+from filters import ALLOWED_CATEGORIES, categorize, cycle_compatible, is_us_location
 
+# Title-only guard for stale rows. Excludes any season tied to an out-of-range
+# year (2010-2025, 2028+) and the past spring/winter/summer 2026 cycles. Note
+# Fall 2026 (new grad) and all of 2027 stay valid and are intentionally absent.
 NON_TARGET_TITLE_CYCLE_RE = re.compile(
-    r'\b(?:fall|autumn)\s*2027\b|'
-    r'\b(?:spring|winter|summer)\s*2026\b|'
-    r'\b(?:fall|autumn|spring|winter|summer)\s*2025\b',
+    r'\b(?:fall|autumn|spring|winter|summer)\s*20(?:1\d|2[0-5]|2[89]|3\d)\b|'
+    r'\b(?:spring|winter|summer)\s*2026\b',
     re.IGNORECASE,
 )
 
@@ -38,7 +40,9 @@ def init_db():
             applied INTEGER DEFAULT 0,
             applied_at TEXT,
             trashed INTEGER DEFAULT 0,
-            trashed_at TEXT
+            trashed_at TEXT,
+            accepted INTEGER DEFAULT 0,
+            accepted_at TEXT
         )
     """)
     # Handle upgrade from older schemas: add columns if they're missing.
@@ -48,6 +52,8 @@ def init_db():
         ("applied_at", "TEXT"),
         ("trashed", "INTEGER DEFAULT 0"),
         ("trashed_at", "TEXT"),
+        ("accepted", "INTEGER DEFAULT 0"),
+        ("accepted_at", "TEXT"),
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {ddl}")
@@ -56,6 +62,7 @@ def init_db():
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_active ON jobs(active)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_applied ON jobs(applied)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_trashed ON jobs(trashed)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_accepted ON jobs(accepted)")
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_jobs_open_sort "
         "ON jobs(active, applied, trashed, date_scraped)"
@@ -75,7 +82,7 @@ def _passes_current_display_filters(job):
         return False
 
     title_category = categorize(title)
-    if title_category is not None and title_category != category:
+    if title_category is not None and not cycle_compatible(title_category, category):
         return False
     return True
 
@@ -221,8 +228,8 @@ def get_all_jobs(category=None, search=None, active_only=True, include_applied=F
         query += " AND active = 1"
     if not include_applied:
         query += " AND applied = 0"
-    # Trashed jobs never show in the main list.
-    query += " AND trashed = 0"
+    # Trashed and accepted jobs never show in the main Open list.
+    query += " AND trashed = 0 AND accepted = 0"
     if category and category != "All":
         query += " AND category = ?"
         params.append(category)
@@ -242,12 +249,26 @@ def get_all_jobs(category=None, search=None, active_only=True, include_applied=F
 
 def get_applied_jobs(search=None):
     conn = get_conn()
-    query = "SELECT * FROM jobs WHERE applied = 1"
+    # Once a job is accepted it moves to the Accepted tab and leaves Applied.
+    query = "SELECT * FROM jobs WHERE applied = 1 AND accepted = 0 AND trashed = 0"
     params = []
     if search:
         query += " AND (company LIKE ? OR title LIKE ?)"
         params.extend([f"%{search}%", f"%{search}%"])
     query += " ORDER BY applied_at DESC"
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_accepted_jobs(search=None):
+    conn = get_conn()
+    query = "SELECT * FROM jobs WHERE accepted = 1 AND trashed = 0"
+    params = []
+    if search:
+        query += " AND (company LIKE ? OR title LIKE ?)"
+        params.extend([f"%{search}%", f"%{search}%"])
+    query += " ORDER BY accepted_at DESC"
     rows = conn.execute(query, params).fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -279,6 +300,28 @@ def mark_applied(job_id, applied=True):
     return changed > 0
 
 
+def mark_accepted(job_id, accepted=True):
+    """Mark a job as accepted (offer accepted). Accepting also clears any
+    trashed flag and keeps the row out of the Open/Applied lists; un-accepting
+    returns it to Applied (its applied flag is left untouched)."""
+    conn = get_conn()
+    now = datetime.utcnow().isoformat() if accepted else None
+    if accepted:
+        cur = conn.execute(
+            "UPDATE jobs SET accepted = 1, accepted_at = ?, applied = 1, trashed = 0 WHERE id = ?",
+            (now, job_id),
+        )
+    else:
+        cur = conn.execute(
+            "UPDATE jobs SET accepted = 0, accepted_at = NULL WHERE id = ?",
+            (job_id,),
+        )
+    conn.commit()
+    changed = cur.rowcount
+    conn.close()
+    return changed > 0
+
+
 def mark_trashed(job_id, trashed=True):
     conn = get_conn()
     now = datetime.utcnow().isoformat() if trashed else None
@@ -302,7 +345,10 @@ def get_stats():
         if _passes_current_display_filters(dict(row))
     ]
     total = len(open_jobs)
-    applied = conn.execute("SELECT COUNT(*) FROM jobs WHERE applied = 1").fetchone()[0]
+    applied = conn.execute(
+        "SELECT COUNT(*) FROM jobs WHERE applied = 1 AND accepted = 0 AND trashed = 0"
+    ).fetchone()[0]
+    accepted = conn.execute("SELECT COUNT(*) FROM jobs WHERE accepted = 1 AND trashed = 0").fetchone()[0]
     trashed = conn.execute("SELECT COUNT(*) FROM jobs WHERE trashed = 1").fetchone()[0]
     categories = {}
     for job in open_jobs:
@@ -311,6 +357,7 @@ def get_stats():
     return {
         "total": total,
         "applied": applied,
+        "accepted": accepted,
         "trashed": trashed,
         "categories": categories,
     }

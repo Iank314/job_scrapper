@@ -8,10 +8,12 @@ from flask import Flask, jsonify, render_template, request, session
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import APP_PASSWORD, APP_SECRET_KEY
 from db import (
+    get_accepted_jobs,
     get_all_jobs,
     get_applied_jobs,
     get_stats,
     get_trashed_jobs,
+    mark_accepted,
     mark_applied,
     mark_trashed,
 )
@@ -119,6 +121,32 @@ def api_mark_applied(job_id):
 @login_required
 def api_unmark_applied(job_id):
     ok = mark_applied(job_id, applied=False)
+    if not ok:
+        return jsonify({"error": "job not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/jobs/accepted")
+@login_required
+def api_accepted_jobs():
+    search = request.args.get("search", "").strip()
+    jobs = get_accepted_jobs(search=search or None)
+    return jsonify({"jobs": jobs})
+
+
+@app.route("/api/jobs/<int:job_id>/accept", methods=["POST"])
+@login_required
+def api_mark_accepted(job_id):
+    ok = mark_accepted(job_id, accepted=True)
+    if not ok:
+        return jsonify({"error": "job not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/jobs/<int:job_id>/unaccept", methods=["POST"])
+@login_required
+def api_unmark_accepted(job_id):
+    ok = mark_accepted(job_id, accepted=False)
     if not ok:
         return jsonify({"error": "job not found"}), 404
     return jsonify({"ok": True})

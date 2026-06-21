@@ -1,13 +1,18 @@
 # Job Scraper - Project Context
 
 ## What this project does
-Scrapes career pages of ~400 companies for backend SWE internships and new grad roles. Filters by US-only locations, excludes PhD-required, senior, and frontend roles, and categorizes into:
-- Fall 2026 Intern
+Scrapes career pages of ~400 companies for backend SWE internships and new grad roles, targeting the **~May 2027 graduating class**. Filters by US-only locations, excludes PhD-required, senior, and frontend roles, and categorizes into:
 - Spring 2027 Intern
 - Summer 2027 Intern
+- 2027 New Grad (season-less: campus / class-of-2027 / University Grad 2027 / "graduating Dec 2026 – June 2027")
 - Summer 2027 New Grad
+- Fall 2027 New Grad
+- Spring 2027 New Grad
+- Fall 2026 New Grad
 
-Results display in a local Flask web UI at `localhost:5000` with a single-user login so you can mark jobs as **Applied** or **Trashed**. Both states persist across re-scrapes.
+Fall 2026 Intern was dropped (that recruiting season is over).
+
+Results display in a local Flask web UI at `localhost:5000` with a single-user login so you can mark jobs as **Applied**, **Accepted**, or **Trashed**. All states persist across re-scrapes.
 
 ## Architecture
 - **Scrapers** (`scraper/`): One per ATS platform — Greenhouse, Lever, Ashby, SmartRecruiters, Workday, iCIMS, generic HTML, and a Playwright-based browser scraper for JS-rendered SPAs. Each fetches job listings and (where cheap) descriptions.

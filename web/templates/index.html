@@ -17,6 +17,7 @@
         <div class="tabs">
             <button class="tab active" data-tab="open">Open Jobs</button>
             <button class="tab" data-tab="applied" id="appliedTab">Applied</button>
+            <button class="tab" data-tab="accepted" id="acceptedTab">Accepted</button>
             <button class="tab" data-tab="trashed" id="trashedTab">Trash</button>
         </div>
 
@@ -24,12 +25,13 @@
             <input type="text" id="search" placeholder="Search by company or title...">
             <select id="category">
                 <option value="All">All Categories</option>
-                <option value="Fall 2026 Intern">Fall 2026 Intern</option>
-                <option value="Fall 2026 New Grad">Fall 2026 New Grad</option>
                 <option value="Spring 2027 Intern">Spring 2027 Intern</option>
-                <option value="Spring 2027 New Grad">Spring 2027 New Grad</option>
                 <option value="Summer 2027 Intern">Summer 2027 Intern</option>
+                <option value="2027 New Grad">2027 New Grad</option>
                 <option value="Summer 2027 New Grad">Summer 2027 New Grad</option>
+                <option value="Fall 2027 New Grad">Fall 2027 New Grad</option>
+                <option value="Spring 2027 New Grad">Spring 2027 New Grad</option>
+                <option value="Fall 2026 New Grad">Fall 2026 New Grad</option>
             </select>
             <label>
                 <input type="checkbox" id="activeOnly" checked> Active only
@@ -80,7 +82,7 @@
         let allJobs = [];
         let sortCol = "date_posted";
         let sortAsc = false;
-        let currentTab = "open";   // "open" | "applied" | "trashed"
+        let currentTab = "open";   // "open" | "applied" | "accepted" | "trashed"
         let authed = false;
 
         function categoryClass(cat) {
@@ -108,9 +110,10 @@
             document.getElementById("jobCount").textContent = `Showing ${jobs.length} job${jobs.length !== 1 ? 's' : ''}`;
 
             // Build per-row actions based on which tab we're on.
-            // Open:    [Applied] [Trash]
-            // Applied: [Unmark]
-            // Trash:   [Restore]
+            // Open:     [Applied] [Trash]
+            // Applied:  [Accepted] [Unmark]
+            // Accepted: [Unmark]
+            // Trash:    [Restore]
             function actionsFor(id) {
                 if (!authed) return "";
                 if (currentTab === "open") {
@@ -120,7 +123,13 @@
                     `;
                 }
                 if (currentTab === "applied") {
-                    return `<button class="btn-row btn-unapply" data-act="unapply" data-id="${id}">Unmark</button>`;
+                    return `
+                        <button class="btn-row btn-accept" data-act="accept" data-id="${id}">Accepted</button>
+                        <button class="btn-row btn-unapply" data-act="unapply" data-id="${id}">Unmark</button>
+                    `;
+                }
+                if (currentTab === "accepted") {
+                    return `<button class="btn-row btn-unapply" data-act="unaccept" data-id="${id}">Unmark</button>`;
                 }
                 // trashed
                 return `<button class="btn-row btn-restore" data-act="untrash" data-id="${id}">Restore</button>`;
@@ -187,6 +196,7 @@
                 let parts = [
                     `<span>${stats.total || 0} open</span>`,
                     `<span>${stats.applied || 0} applied</span>`,
+                    `<span>${stats.accepted || 0} accepted</span>`,
                     `<span>${stats.trashed || 0} trashed</span>`,
                 ];
                 for (const [cat, count] of Object.entries(stats.categories || {})) {
@@ -194,12 +204,14 @@
                 }
                 statsEl.innerHTML = parts.join(" ");
             } else {
-                // Applied or Trashed tab
+                // Applied, Accepted, or Trashed tab
                 const search = document.getElementById("search").value;
                 const params = new URLSearchParams({ search });
-                const endpoint = currentTab === "applied"
-                    ? "/api/jobs/applied"
-                    : "/api/jobs/trashed";
+                const endpoint = {
+                    applied: "/api/jobs/applied",
+                    accepted: "/api/jobs/accepted",
+                    trashed: "/api/jobs/trashed",
+                }[currentTab];
                 resp = await fetch(`${endpoint}?${params}`);
                 if (resp.status === 401) {
                     allJobs = [];
@@ -216,7 +228,7 @@
         async function onRowAction(ev) {
             const btn = ev.currentTarget;
             const id = btn.dataset.id;
-            const act = btn.dataset.act;  // apply | unapply | trash | untrash
+            const act = btn.dataset.act;  // apply | unapply | accept | unaccept | trash | untrash
             const resp = await fetch(`/api/jobs/${id}/${act}`, { method: "POST" });
             if (resp.status === 401) {
                 openLogin();
@@ -278,8 +290,8 @@
             await fetch("/api/logout", { method: "POST" });
             authed = false;
             renderAuth();
-            // If on applied tab, go back to open
-            if (currentTab === "applied") switchTab("open");
+            // Logged-in-only tabs require auth; fall back to Open.
+            if (currentTab !== "open") switchTab("open");
             else fetchJobs();
         }
 
@@ -303,7 +315,7 @@
         document.querySelectorAll(".tab").forEach(t => {
             t.addEventListener("click", () => {
                 const name = t.dataset.tab;
-                if ((name === "applied" || name === "trashed") && !authed) {
+                if (name !== "open" && !authed) {
                     openLogin();
                     return;
                 }
