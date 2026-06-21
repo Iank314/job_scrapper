@@ -41,6 +41,8 @@
             </label>
         </div>
 
+        <div class="accepted-banner" id="acceptedBanner">🎉&nbsp;&nbsp;Offers Accepted&nbsp;&nbsp;🎉</div>
+
         <div class="job-count" id="jobCount"></div>
 
         <table>
@@ -110,26 +112,27 @@
             document.getElementById("jobCount").textContent = `Showing ${jobs.length} job${jobs.length !== 1 ? 's' : ''}`;
 
             // Build per-row actions based on which tab we're on.
-            // Open:     [Applied] [Trash]
-            // Applied:  [Accepted] [Unmark]
-            // Accepted: [Unmark]
+            // Open:     [Applied] [Accepted] [Trash]
+            // Applied:  [Accepted] [Un-apply]
+            // Accepted: [Un-accept]
             // Trash:    [Restore]
             function actionsFor(id) {
                 if (!authed) return "";
                 if (currentTab === "open") {
                     return `
                         <button class="btn-row btn-apply" data-act="apply" data-id="${id}">Applied</button>
+                        <button class="btn-row btn-accept" data-act="accept" data-id="${id}">Accepted</button>
                         <button class="btn-row btn-trash" data-act="trash" data-id="${id}">Trash</button>
                     `;
                 }
                 if (currentTab === "applied") {
                     return `
                         <button class="btn-row btn-accept" data-act="accept" data-id="${id}">Accepted</button>
-                        <button class="btn-row btn-unapply" data-act="unapply" data-id="${id}">Unmark</button>
+                        <button class="btn-row btn-unapply" data-act="unapply" data-id="${id}">Un-apply</button>
                     `;
                 }
                 if (currentTab === "accepted") {
-                    return `<button class="btn-row btn-unapply" data-act="unaccept" data-id="${id}">Unmark</button>`;
+                    return `<button class="btn-row btn-unapply" data-act="unaccept" data-id="${id}">Un-accept</button>`;
                 }
                 // trashed
                 return `<button class="btn-row btn-restore" data-act="untrash" data-id="${id}">Restore</button>`;
@@ -238,11 +241,11 @@
                 alert("Action failed");
                 return;
             }
-            // Optimistic: drop the row locally
+            // Optimistic: drop the row locally, then re-sync the current view
+            // (and the header stats) so nothing looks lost or stale.
             allJobs = allJobs.filter(j => String(j.id) !== String(id));
             renderJobs(sortJobs(allJobs));
-            // Refresh stats when on the open tab so the header counts update
-            if (currentTab === "open") fetchJobs();
+            fetchJobs();
         }
 
         // ---------- Auth ----------
@@ -307,7 +310,28 @@
             document.getElementById("category").style.display = isOpen ? "" : "none";
             document.getElementById("activeOnly").parentElement.style.display = isOpen ? "" : "none";
             document.getElementById("newOnlyLabel").style.display = isOpen ? "" : "none";
+            // Celebrate the Accepted tab.
+            document.body.classList.toggle("accepted-view", name === "accepted");
+            if (name === "accepted") burstConfetti();
             fetchJobs();
+        }
+
+        // Confetti burst — pure JS, no library. Spawns colored pieces that
+        // fall and fade, then clean themselves up.
+        function burstConfetti() {
+            const colors = ["#f0c040", "#50f0c0", "#d070f0", "#50a0f0", "#50f090", "#ffffff"];
+            for (let i = 0; i < 90; i++) {
+                const p = document.createElement("div");
+                p.className = "confetti-piece";
+                p.style.left = (Math.random() * 100) + "vw";
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.width = (6 + Math.random() * 6) + "px";
+                p.style.height = (10 + Math.random() * 8) + "px";
+                p.style.animationDelay = (Math.random() * 0.5) + "s";
+                p.style.animationDuration = (1.8 + Math.random() * 1.6) + "s";
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 3800);
+            }
         }
 
         // ---------- Event wiring ----------

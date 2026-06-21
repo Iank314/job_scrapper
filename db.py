@@ -71,10 +71,18 @@ def init_db():
     conn.close()
 
 
-def _passes_current_display_filters(job):
+def _passes_current_display_filters(job, strict=True):
+    """Display-time guard for the Open list.
+
+    When `strict` (the default — the curated "Active only" view and stats), a
+    row must have a currently-targeted category. When not strict (the user
+    unchecks "Active only" — a deliberate "show me everything" escape hatch),
+    off-cycle rows pass through, so a job you un-apply/un-accept can always be
+    found again instead of silently vanishing.
+    """
     category = job.get("category")
     title = job.get("title") or ""
-    if category not in ALLOWED_CATEGORIES:
+    if strict and category not in ALLOWED_CATEGORIES:
         return False
     if not is_us_location(job.get("location") or ""):
         return False
@@ -244,7 +252,10 @@ def get_all_jobs(category=None, search=None, active_only=True, include_applied=F
     rows = conn.execute(query, params).fetchall()
     conn.close()
     jobs = [dict(r) for r in rows]
-    return [job for job in jobs if _passes_current_display_filters(job)]
+    # Unchecking "Active only" is an explicit "show everything" — relax the
+    # on-cycle category gate so off-cycle / inactive jobs (e.g. ones you just
+    # un-applied) remain findable.
+    return [job for job in jobs if _passes_current_display_filters(job, strict=active_only)]
 
 
 def get_applied_jobs(search=None):
