@@ -1,5 +1,6 @@
 import re
 import sqlite3
+import threading
 from datetime import datetime
 from config import DB_PATH
 from filters import ALLOWED_CATEGORIES, categorize, cycle_compatible, is_us_location
@@ -12,6 +13,13 @@ NON_TARGET_TITLE_CYCLE_RE = re.compile(
     r'\b(?:spring|winter|summer)\s*2026\b',
     re.IGNORECASE,
 )
+
+
+# All scraper threads share one process, so SQLite's WAL + busy_timeout alone
+# still surfaced "database is locked" under 20-way write contention. Serialize
+# the actual write transactions in-process; reads (the Flask UI) stay lock-free
+# thanks to WAL.
+_write_lock = threading.Lock()
 
 
 def get_conn():
@@ -105,6 +113,7 @@ def sync_company_jobs(company, source_ats, jobs, active_urls):
     urls = [job["url"] for job in jobs if job.get("url")]
     active_urls = {url for url in active_urls if url}
 
+    _write_lock.acquire()
     try:
         conn.execute("CREATE TEMP TABLE IF NOT EXISTS scrape_urls (url TEXT PRIMARY KEY)")
         conn.execute("DELETE FROM scrape_urls")
@@ -170,6 +179,7 @@ def sync_company_jobs(company, source_ats, jobs, active_urls):
         return set(urls) - existing_urls
     finally:
         conn.close()
+        _write_lock.release()
 
 
 def upsert_job(company, title, url, category, source_ats, location=None, date_posted=None):
@@ -177,6 +187,7 @@ def upsert_job(company, title, url, category, source_ats, location=None, date_po
     (URL never seen before), False if it was an update to an existing row."""
     conn = get_conn()
     now = datetime.utcnow().isoformat()
+    _write_lock.acquire()
     try:
         exists = conn.execute("SELECT 1 FROM jobs WHERE url = ?", (url,)).fetchone() is not None
         conn.execute("""
@@ -194,11 +205,13 @@ def upsert_job(company, title, url, category, source_ats, location=None, date_po
         return not exists
     finally:
         conn.close()
+        _write_lock.release()
 
 
 def mark_inactive(source_ats, company, active_urls):
     """Mark jobs as inactive if they no longer appear on the career page."""
     conn = get_conn()
+    _write_lock.acquire()
     try:
         active_urls = {url for url in active_urls if url}
         if active_urls:
@@ -225,6 +238,7 @@ def mark_inactive(source_ats, company, active_urls):
         conn.commit()
     finally:
         conn.close()
+        _write_lock.release()
 
 
 def get_all_jobs(category=None, search=None, active_only=True, include_applied=False, since=None):

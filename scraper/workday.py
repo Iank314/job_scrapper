@@ -108,14 +108,16 @@ class WorkdayScraper(BaseScraper):
         tenant = company_cfg.get("tenant") or parsed.netloc.split(".")[0]
         site = company_cfg.get("site") or self._site_from_path(parsed.path)
 
-        urls = []
         if tenant and site:
-            urls.append(f"{origin}/wday/cxs/{tenant}/{site}/jobs")
+            # The cxs endpoint is the only one that returns JSON. If it errors
+            # (404 wrong site / 422 wrong tenant / 410 migrated pod), let that
+            # HTTP error propagate so the real cause is visible — don't fall
+            # back to the visible career URL, which serves HTML and would mask
+            # the failure as a misleading "Expecting value" JSON-parse error.
+            return [f"{origin}/wday/cxs/{tenant}/{site}/jobs"]
 
-        # Older Workday links in this repo used the visible career URL plus
-        # /jobs. Keep it as a fallback for any tenant that still accepts it.
-        urls.append(base_url.rstrip("/") + "/jobs")
-        return urls
+        # Couldn't derive a cxs path (no tenant/site); try the legacy form.
+        return [base_url.rstrip("/") + "/jobs"]
 
     def _site_from_path(self, path):
         parts = [part for part in path.strip("/").split("/") if part]

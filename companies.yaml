@@ -24,26 +24,26 @@ companies:
   ats: workday
   url: https://intel.wd1.myworkdayjobs.com/en-US/External
 - name: AMD
-  ats: workday
-  url: https://amd.wd1.myworkdayjobs.com/en-US/AMD
+  ats: playwright
+  url: https://careers.amd.com/careers-home/jobs?keywords=software%20engineer%20intern
 - name: Qualcomm
   ats: generic
   url: https://careers.qualcomm.com/careers?query=software+intern
 - name: Cisco
   ats: workday
-  url: https://cisco.wd5.myworkdayjobs.com/en-US/External
+  url: https://cisco.wd5.myworkdayjobs.com/en-US/Cisco_Careers
 - name: Oracle
   ats: generic
   url: https://careers.oracle.com/jobs/#en/sites/jobsearch/requisitions
 - name: Salesforce
   ats: workday
-  url: https://salesforce.wd12.myworkdayjobs.com/en-US/External
+  url: https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site
 - name: Adobe
   ats: workday
   url: https://adobe.wd5.myworkdayjobs.com/en-US/external_experienced
 - name: IBM
-  ats: workday
-  url: https://ibm.wd5.myworkdayjobs.com/en-US/IBM_Careers
+  ats: playwright
+  url: https://www.ibm.com/careers/search?field_keyword_05[0]=Software%20Engineering
 - name: Dell
   ats: workday
   url: https://dell.wd1.myworkdayjobs.com/en-US/External
@@ -55,7 +55,7 @@ companies:
   board_id: sonyinteractiveentertainmentglobal
 - name: Broadcom
   ats: workday
-  url: https://broadcom.wd1.myworkdayjobs.com/en-US/External
+  url: https://broadcom.wd1.myworkdayjobs.com/en-US/External_Career
 - name: OpenAI
   ats: ashby
   board_id: openai
@@ -99,8 +99,8 @@ companies:
   ats: greenhouse
   board_id: xai
 - name: Cerebras
-  ats: greenhouse
-  board_id: cerebrassystems
+  ats: ashby
+  board_id: cerebras
 - name: Modal
   ats: ashby
   board_id: modal
@@ -246,17 +246,14 @@ companies:
   ats: greenhouse
   board_id: postman
 - name: Okta
-  ats: workday
-  url: https://okta.wd1.myworkdayjobs.com/en-US/Okta_Careers
+  ats: greenhouse
+  board_id: okta
 - name: Temporal
   ats: greenhouse
-  board_id: temporal
+  board_id: temporaltechnologies
 - name: PagerDuty
   ats: greenhouse
   board_id: pagerduty
-- name: Splunk
-  ats: workday
-  url: https://splunk.wd1.myworkdayjobs.com/en-US/Splunk
 - name: New Relic
   ats: greenhouse
   board_id: newrelic
@@ -424,16 +421,16 @@ companies:
   url: https://www.lockheedmartinjobs.com/search-jobs/software%20engineer%20intern/United%20States
 - name: Raytheon (RTX)
   ats: workday
-  url: https://rtx.wd1.myworkdayjobs.com/en-US/External
+  url: https://globalhr.wd5.myworkdayjobs.com/en-US/REC_RTX_Ext_Gateway
 - name: Northrop Grumman
   ats: workday
-  url: https://northropgrumman.wd1.myworkdayjobs.com/en-US/Northrop_Grumman_External_Site
+  url: https://ngc.wd1.myworkdayjobs.com/en-US/Northrop_Grumman_External_Site
 - name: Boeing
   ats: workday
-  url: https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL
+  url: https://boeing.wd1.myworkdayjobs.com/en-US/External_Careers
 - name: L3Harris
-  ats: workday
-  url: https://l3harris.wd5.myworkdayjobs.com/en-US/L3Harris
+  ats: playwright
+  url: https://careers.l3harris.com/en/search-jobs/software%20engineer/United%20States
 - name: SpaceX
   ats: greenhouse
   board_id: spacex
@@ -447,8 +444,8 @@ companies:
   ats: lever
   board_id: shieldai
 - name: Applied Intuition
-  ats: greenhouse
-  board_id: appliedintuition
+  ats: ashby
+  board_id: applied
 - name: Gecko Robotics
   ats: ashby
   board_id: gecko-robotics
@@ -520,10 +517,10 @@ companies:
   url: https://etsy.wd5.myworkdayjobs.com/Etsy_Careers
 - name: Walmart Global Tech
   ats: workday
-  url: https://walmart.wd5.myworkdayjobs.com/en-US/WalmartExternal
+  url: https://walmart.wd504.myworkdayjobs.com/en-US/WalmartExternal
 - name: Target
   ats: workday
-  url: https://target.wd5.myworkdayjobs.com/en-US/targetExternalCareerSite
+  url: https://target.wd5.myworkdayjobs.com/en-US/TargetCareers
 - name: Ellipsis Labs
   ats: ashby
   board_id: ellipsislabs
@@ -559,8 +556,8 @@ companies:
   ats: workday
   url: https://paypal.wd1.myworkdayjobs.com/en-US/jobs
 - name: Arm
-  ats: workday
-  url: https://arm.wd1.myworkdayjobs.com/en-US/External
+  ats: playwright
+  url: https://careers.arm.com/search-jobs/software%20engineer%20intern
 - name: Marvell
   ats: workday
   url: https://marvell.wd1.myworkdayjobs.com/en-US/MarvellCareers
@@ -568,8 +565,8 @@ companies:
   ats: workday
   url: https://micron.wd1.myworkdayjobs.com/en-US/External
 - name: Western Digital
-  ats: workday
-  url: https://westerndigital.wd1.myworkdayjobs.com/en-US/WD_External
+  ats: smartrecruiters
+  board_id: WesternDigital
 - name: Applied Materials
   ats: workday
   url: https://amat.wd1.myworkdayjobs.com/en-US/External
@@ -583,8 +580,8 @@ companies:
   ats: greenhouse
   board_id: qualtrics
 - name: ServiceNow
-  ats: workday
-  url: https://servicenow.wd1.myworkdayjobs.com/en-US/servicenow
+  ats: smartrecruiters
+  board_id: ServiceNow
 - name: Workday
   ats: workday
   url: https://workday.wd5.myworkdayjobs.com/en-US/Workday
@@ -604,8 +601,8 @@ companies:
   ats: greenhouse
   board_id: squarespace
 - name: Nutanix
-  ats: workday
-  url: https://nutanix.wd1.myworkdayjobs.com/en-US/Nutanix_Careers
+  ats: playwright
+  url: https://careers.nutanix.com/en/jobs/
 - name: Pure Storage
   ats: greenhouse
   board_id: purestorage
@@ -619,8 +616,8 @@ companies:
   ats: greenhouse
   board_id: verkada
 - name: Lumen Technologies
-  ats: workday
-  url: https://lumen.wd5.myworkdayjobs.com/en-US/Global
+  ats: playwright
+  url: https://careers.lumen.com/careers
 - name: Ally Financial
   ats: playwright
   url: https://www.ally.com/about/careers/search-jobs/?q=software%20engineer%20intern
@@ -628,47 +625,47 @@ companies:
   ats: playwright
   url: https://jobs.fidelity.com/search-jobs/software%20engineer%20intern
 - name: Charles Schwab
-  ats: workday
-  url: https://schwab.wd5.myworkdayjobs.com/en-US/SchwabCareers
+  ats: icims
+  url: https://career-schwab.icims.com/jobs/search
 - name: T. Rowe Price
   ats: workday
   url: https://troweprice.wd5.myworkdayjobs.com/en-US/TRowePrice
 - name: Vanguard
   ats: workday
-  url: https://vanguard.wd5.myworkdayjobs.com/en-US/VanguardCareers
+  url: https://vanguard.wd5.myworkdayjobs.com/en-US/vanguard_external
 - name: State Farm
-  ats: workday
-  url: https://statefarm.wd1.myworkdayjobs.com/en-US/External
+  ats: icims
+  url: https://careers-statefarm.icims.com/jobs/search
 - name: Progressive
   ats: playwright
   url: https://www.progressive.com/careers/
 - name: Liberty Mutual
-  ats: workday
-  url: https://libertymutual.wd5.myworkdayjobs.com/en-US/GAP
+  ats: playwright
+  url: https://searchjobs.libertymutualgroup.com/careers?query=software%20engineer
 - name: Bloomberg
   ats: playwright
   url: https://careers.bloomberg.com/job/search?c=Engineering+%26+CTO&l=United+States
 - name: General Motors
   ats: workday
-  url: https://generalmotors.wd5.myworkdayjobs.com/en-US/Careers_General_Motors
+  url: https://generalmotors.wd5.myworkdayjobs.com/en-US/Careers_GM
 - name: Ford Motor Company
-  ats: workday
-  url: https://ford.wd1.myworkdayjobs.com/en-US/FordCareers
+  ats: playwright
+  url: https://www.careers.ford.com/search-jobs
 - name: John Deere
-  ats: workday
-  url: https://deere.wd5.myworkdayjobs.com/en-US/JohnDeereCareers
+  ats: playwright
+  url: https://careers.deere.com/careers/1000
 - name: Caterpillar
   ats: workday
-  url: https://caterpillarcareers.wd5.myworkdayjobs.com/en-US/CaterpillarCareers
+  url: https://cat.wd5.myworkdayjobs.com/en-US/CaterpillarCareers
 - name: 3M
   ats: workday
   url: https://3m.wd1.myworkdayjobs.com/en-US/Search
 - name: Honeywell
-  ats: workday
-  url: https://honeywell.wd1.myworkdayjobs.com/en-US/Honeywell
+  ats: playwright
+  url: https://careers.honeywell.com/us/en/search-results
 - name: GE Aerospace
   ats: workday
-  url: https://ge.wd5.myworkdayjobs.com/en-US/GE_ExternalSite
+  url: https://geaerospace.wd5.myworkdayjobs.com/en-US/GE_ExternalSite
 - name: Twitch
   ats: greenhouse
   board_id: twitch
@@ -723,9 +720,6 @@ companies:
 - name: Alloy Campus Recruiting
   ats: greenhouse
   board_id: alloycampus
-- name: Alloy Enterprises
-  ats: ashby
-  board_id: alloyenterprises
 - name: Amentum
   ats: workday
   url: https://pae.wd1.myworkdayjobs.com/en-US/amentum_careers
@@ -916,8 +910,9 @@ companies:
   ats: workday
   url: https://cincinnatichildrens.wd5.myworkdayjobs.com/en-US/careersatcincinnatichildrens
 - name: Cirrus Logic
-  ats: workday
-  url: https://cirrus.wd1.myworkdayjobs.com/en-US/CirrusLogic
+  ats: lever
+  board_id: cirrus
+  eu: true
 - name: Citizen Health
   ats: ashby
   board_id: citizen%20health
@@ -935,7 +930,7 @@ companies:
   url: https://nshe.wd1.myworkdayjobs.com/en-US/csn-external
 - name: ConductorOne
   ats: ashby
-  board_id: conductorone
+  board_id: c1
 - name: Cook Systems
   ats: greenhouse
   board_id: cooksys
