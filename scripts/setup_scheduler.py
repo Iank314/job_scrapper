@@ -1,8 +1,11 @@
-"""Create a Windows Task Scheduler task that runs `python run.py --scrape`
-every 8 hours. If the computer was off, it runs once on wake-up (not once
-per missed interval).
+"""Create a Windows Task Scheduler task that runs `python run.py --if-due`
+three times a day: 00:30, 12:00, and 18:00 (local time).
 
-Run this script once with admin privileges:
+`--if-due` gates each run on a timestamp file, so if the laptop was asleep
+across one or more scheduled times, only ONE catch-up scrape runs on wake-up
+instead of one per missed slot.
+
+Run this script once (no admin needed for a per-user task):
 
     python scripts/setup_scheduler.py
 
@@ -16,26 +19,35 @@ import sys
 import tempfile
 
 TASK_NAME = "JobScraper"
-INTERVAL_HOURS = 24
+# Daily run times (24h). Keep in sync with SCHEDULE_SLOTS in schedule_gate.py.
+SLOTS = ["00:30", "12:00", "18:00"]
+# Any past date works; only the time-of-day drives the daily recurrence.
+START_DATE = "2025-01-01"
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PYTHON = sys.executable
 SCRIPT = os.path.join(ROOT, "run.py")
-LOG_FILE = os.path.join(ROOT, "scrape.log")
 
-# XML task definition — this is the only way to set StartWhenAvailable
-# and MultipleInstancesPolicy, which schtasks CLI doesn't expose.
+# One daily CalendarTrigger per slot. XML is used (rather than the schtasks
+# CLI flags) because only XML exposes StartWhenAvailable and
+# MultipleInstancesPolicy.
+TRIGGER_TEMPLATE = """\
+    <CalendarTrigger>
+      <StartBoundary>{date}T{time}:00</StartBoundary>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>"""
+
 TASK_XML = """\
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Scrapes career pages 3x/day (00:30, 12:00, 18:00). Missed runs collapse into one catch-up.</Description>
+  </RegistrationInfo>
   <Triggers>
-    <TimeTrigger>
-      <Repetition>
-        <Interval>PT{hours}H</Interval>
-        <StopAtDurationEnd>false</StopAtDurationEnd>
-      </Repetition>
-      <StartBoundary>2026-04-12T00:00:00</StartBoundary>
-      <Enabled>true</Enabled>
-    </TimeTrigger>
+{triggers}
   </Triggers>
   <Settings>
     <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
@@ -52,7 +64,7 @@ TASK_XML = """\
   <Actions>
     <Exec>
       <Command>{python}</Command>
-      <Arguments>"{script}" --scrape</Arguments>
+      <Arguments>"{script}" --if-due</Arguments>
       <WorkingDirectory>{workdir}</WorkingDirectory>
     </Exec>
   </Actions>
@@ -61,8 +73,11 @@ TASK_XML = """\
 
 
 def main():
+    triggers = "\n".join(
+        TRIGGER_TEMPLATE.format(date=START_DATE, time=t) for t in SLOTS
+    )
     xml = TASK_XML.format(
-        hours=INTERVAL_HOURS,
+        triggers=triggers,
         python=PYTHON,
         script=SCRIPT,
         workdir=ROOT,
@@ -81,9 +96,10 @@ def main():
     ]
 
     print(f"Creating scheduled task '{TASK_NAME}'...")
-    print(f"  Interval:            every {INTERVAL_HOURS} hours")
-    print(f"  Run on wake-up:      yes (catches up missed runs)")
-    print(f"  Stack missed runs:   no (IgnoreNew — only one instance at a time)")
+    print(f"  Runs daily at:       {', '.join(SLOTS)}")
+    print(f"  Run on wake-up:      yes (catches up a missed slot)")
+    print(f"  Missed-run dedupe:   yes (--if-due collapses a backlog into one run)")
+    print(f"  Stack instances:     no (IgnoreNew — only one at a time)")
     print(f"  Needs network:       yes (skips if offline)")
     print(f"  Working directory:   {ROOT}")
     print()
@@ -102,9 +118,10 @@ def main():
                 print("\nTry running this script as Administrator.")
     except FileNotFoundError:
         print("schtasks not found — this script only works on Windows.")
-        print("On Linux/macOS, add this to your crontab instead:")
-        minutes = INTERVAL_HOURS * 60
-        print(f"  0 */{INTERVAL_HOURS} * * * cd {ROOT} && {PYTHON} run.py --scrape >> scrape.log 2>&1")
+        print("On Linux/macOS, add these to your crontab instead:")
+        for t in SLOTS:
+            hh, mm = t.split(":")
+            print(f"  {int(mm)} {int(hh)} * * *  cd {ROOT} && {PYTHON} run.py --if-due >> scrape.log 2>&1")
     finally:
         try:
             os.remove(xml_path)

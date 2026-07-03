@@ -379,7 +379,7 @@ companies:
   board_id: point72
 - name: Optiver
   ats: greenhouse
-  board_id: optiver
+  board_id: optiverus
 - name: IMC Trading
   ats: greenhouse
   board_id: imc

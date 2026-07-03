@@ -16,7 +16,7 @@ Results display in a local Flask web UI at `localhost:5000` with a single-user l
 
 ## Architecture
 - **Scrapers** (`scraper/`): One per ATS platform — Greenhouse, Lever, Ashby, SmartRecruiters, Workday, iCIMS, generic HTML, and a Playwright-based browser scraper for JS-rendered SPAs. Each fetches job listings and (where cheap) descriptions.
-- **Filters** (`filters.py`): Whole-word keyword matching for backend SWE roles; seniority exclusion (senior/staff/principal/lead/II/III/IV/L3+); US location filter; PhD exclusion; and season/year categorization where the **title is authoritative** and description is only a tiebreaker.
+- **Filters** (`filters.py`): Whole-word keyword matching for backend SWE roles (incl. software developer / SDE / architect titles); seniority exclusion (senior/staff/principal/lead/II/III/IV/L3+); US location filter; PhD exclusion; and season/year categorization where the **title is authoritative** and description is only a tiebreaker. **Tuned recall-first** — see Key decisions: a year-less new-grad/intern role defaults to the 2027 target class rather than being dropped, and only clearly non-US locations are rejected.
 - **Database** (`db.py`): SQLite (`jobs.db`), single `jobs` table with deduplication by URL. Per-row state for `active`, `applied`, `trashed` — the scraper's `upsert_job` only touches scraper-owned columns, so applied/trashed flags survive re-scrapes.
 - **Company config** (`companies.yaml`): ~400 entries. Each has `name`, `ats`, and either `board_id` or `url`.
 - **Web UI** (`web/`): Flask app with dark-themed single-page table, Open/Applied/Trash tabs, login modal, per-row action buttons. Session auth via `APP_PASSWORD` from `.env`.
@@ -27,7 +27,8 @@ Results display in a local Flask web UI at `localhost:5000` with a single-user l
 - JSON API scrapers (Greenhouse, Lever, Ashby) use clean `Accept: application/json` headers. HTML scrapers use browser-like headers with Sec-Fetch headers.
 - iCIMS uses `/jobs/search?pr=0&in_iframe=1&...` since the normal `/jobs/search` is POST-only and returns 405 on GET.
 - Playwright companies run **sequentially** sharing one browser (sync API isn't thread-safe). Timeouts capped: 20s goto / 8s networkidle / 1s settle / 3 scroll passes → ~30s max per company.
-- Location filter is strict: must have a positive US signal to be included. Unknown locations without any US signal are rejected.
+- **Recall-first filtering** (better to over-include than miss a crucial role): the location filter rejects a role *only* when it has an explicit non-US signal and no US signal — blank / remote / ambiguous locations are kept. Likewise `categorize()` no longer requires an explicit year: a new-grad/early-career role (or a title-level intern) with no cycle in the text defaults to the ~2027 target class instead of being dropped. The strong gate that keeps volume bounded is the intern/new-grad **category** requirement — plain experienced "Software Engineer" roles still get no category and are excluded.
+- `architect`-style titles (software / system / systems / solutions / cloud / data architect) are **included**, not treated as senior. Bare seniority markers (senior/staff/principal/lead/…) still exclude, so "Senior Software Architect" is still dropped.
 - Summer 2026 / Spring 2026 postings are explicitly excluded as past cycle — title-only so we don't drop a 2027 role that happens to mention a past program in its description.
 - `.env` loads via python-dotenv; `APP_PASSWORD` and `APP_SECRET_KEY` never get committed.
 

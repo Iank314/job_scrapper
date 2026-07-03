@@ -116,7 +116,7 @@ NON_US_INDICATORS = [
 SENIORITY_EXCLUDE = re.compile(
     r'\b('
     r'senior|sr\.?|staff|principal|lead|director|manager|mgr\.?|'
-    r'vp|head\s+of|distinguished|fellow|architect|'
+    r'vp|head\s+of|distinguished|fellow|'
     r'ii|iii|iv|'
     r'l[3-9]|l1[0-9]'
     r')\b',
@@ -154,78 +154,30 @@ def matches_backend_swe(title):
 
 
 def is_us_location(location):
-    """Return True only if the location is clearly in the US."""
+    """Return True unless the location is *clearly* non-US.
+
+    Recall-first (per project priority): a US-based user would rather see a few
+    extra roles than miss a real one, so anything without an explicit non-US
+    signal is kept — blank, remote, and ambiguous locations included. A location
+    is rejected only when it carries a non-US signal and no US signal (e.g.
+    "London", "Sydney, Australia", "EMEA"). Multi-location strings that name both
+    (e.g. "New York / London") are kept.
+    """
     if not location or not location.strip():
-        return False
+        return True  # unknown location — keep it rather than risk missing a US role
 
     loc = location.lower().strip()
 
-    # Generic/ambiguous labels do not prove US eligibility.
-    if loc in ("n/a", "tbd", "various", "multiple", "hybrid", "flexible",
-               "in-office", "on-site", "onsite"):
-        return False
+    has_non_us = any(indicator in loc for indicator in NON_US_INDICATORS)
 
-    # Company-specific flexible locations (e.g., "Flexible - Any SpaceX Site")
-    if "spacex" in loc or "any site" in loc:
-        return True
-
-    # Check for explicit non-US indicators first
-    has_non_us = False
-    for indicator in NON_US_INDICATORS:
-        if indicator in loc:
-            has_non_us = True
-            break
-
-    # Check for explicit US indicators
-    has_us = False
-    for indicator in US_INDICATORS:
-        if indicator in loc:
-            has_us = True
-            break
-
-    # Check state abbreviation regex (e.g., ", CA", ", NY")
+    has_us = any(indicator in loc for indicator in US_INDICATORS)
     if not has_us and _state_pattern.search(location):
         has_us = True
-
-    # Also check regex US patterns (e.g., standalone "US", "Remote US")
     if not has_us:
-        for pattern in US_PATTERNS:
-            if re.search(pattern, loc, re.IGNORECASE):
-                has_us = True
-                break
+        has_us = any(re.search(pattern, loc, re.IGNORECASE) for pattern in US_PATTERNS)
 
-    # If it has both US and non-US (multi-location), keep it
-    if has_us and has_non_us:
-        return True
-
-    # If it's clearly non-US with no US signal, reject
-    if has_non_us and not has_us:
-        return False
-
-    # If it has a clear US signal, keep
-    if has_us:
-        return True
-
-    # "Remote" alone without a country qualifier is ambiguous.
-    if loc in ("remote",):
-        return False
-
-    # "Remote - X" where X could be a country; check if X is US.
-    remote_match = re.match(r'remote\s*[-,]\s*(.+)', loc)
-    if remote_match:
-        remainder = remote_match.group(1).strip()
-        # Check if the remainder is a US state or "US"/"USA"
-        for indicator in US_INDICATORS:
-            if indicator.strip(", ") in remainder:
-                return True
-        for pattern in US_PATTERNS:
-            if re.search(pattern, remainder, re.IGNORECASE):
-                return True
-        # "Remote - <non-US country>" — reject
-        return False
-
-    # Unknown location — reject to be safe (no US signal found)
-    return False
+    # Reject only when clearly non-US with no US signal; keep everything else.
+    return not (has_non_us and not has_us)
 
 
 def extract_us_location(text):
@@ -343,7 +295,7 @@ NEW_GRAD_PATTERNS = [
     r'\buniversity\s+(?:grad(?:uate)?s?|hire[sd]?|hiring|program|recruit\w*)\b',
     r'\bcampus\s+(?:hire[sd]?|hiring|recruit\w*|grad(?:uate)?s?|program)\b',
     r'\brecent\s*grad(uate)?s?\b',
-    r'\bgraduate\s+(?:software\s+)?(?:engineer|developer|swe)\b',
+    r'\bgraduate\s+(?:software\s+)?(?:engineer|developer|swe|architect|programmer)\b',
     r'\bgraduate\s+(?:program|rotation\w*|scheme|hir(?:e|ing))\b',
     r'\bearly[-\s]?career\b',
     r'\bentry[-\s]?level\b',
@@ -401,7 +353,7 @@ def _soonest(valid, order):
     return sorted(set(valid), key=order.index)[0] if valid else None
 
 
-def _intern_category(t, d):
+def _intern_category(t, d, title_is_intern):
     valid = [_INTERN_CYCLES[c] for c in (_explicit_cycles(t) or _explicit_cycles(d))
              if c in _INTERN_CYCLES]
     soonest = _soonest(valid, _INTERN_ORDER)
@@ -409,12 +361,24 @@ def _intern_category(t, d):
         return soonest
     if _past_cycle_in_title(t):
         return None
-    # Require BOTH a single season AND year — "Summer Intern" with no year is
-    # ambiguous and should not be saved.
+    # Beyond an explicit "{season} {year}" token (handled above), only infer an
+    # intern cycle when the TITLE itself says intern. Otherwise a new-grad role
+    # that merely mentions a "summer internship program" in its description would
+    # be mislabeled an intern instead of falling through to the new-grad path.
+    if not title_is_intern:
+        return None
     season = _season_from(t) or _season_from(d)
     year = _year_from(t) or _year_from(d)
-    if season and year:
+    # Recall-first: the only live intern cycles for the ~2027 class are Spring
+    # and Summer 2027 (2026 cycles were already excluded above by title), so a
+    # missing year defaults to 2027 rather than dropping the role.
+    if year is None:
+        year = 2027
+    if season:
         return _INTERN_CYCLES.get((season, year))
+    # Title says intern but names no season — default to the dominant cycle.
+    if year == 2027:
+        return "Summer 2027 Intern"
     return None
 
 
@@ -426,17 +390,23 @@ def _newgrad_category(t, d, combined):
         return soonest
     if _past_cycle_in_title(t):
         return None
-    season = _season_from(t) or _season_from(d)
+    # Season is taken from the TITLE only — description prose routinely names an
+    # unrelated season (e.g. a general new-grad post mentioning a "summer
+    # internship program"), which must not drive the cycle. Adjacent
+    # "{season} {year}" tokens in the description were already handled above.
+    season = _season_from(t)
     year = _year_from(t) or _year_from(d)
     if season and year and (season, year) in _NEWGRAD_CYCLES:
         return _NEWGRAD_CYCLES[(season, year)]
-    # A grad window ("Dec 2026 - June 2027") or an explicit 2027 mention puts
-    # the role in the 2027 class; use the season if one is known.
-    if year == 2027 or "2027" in combined or _grad_window_targets_2027(combined):
-        if season in ("fall", "spring", "summer"):
-            return _NEWGRAD_CYCLES[(season, 2027)]
-        return _GENERAL_2027
-    return None
+    # Recall-first: reaching here means is_new_grad matched (a genuine new-grad /
+    # early-career / campus signal) and the title named no past 2026 cycle, so
+    # this is a role for the target class that simply didn't spell out a cycle.
+    # Keep it — use the title's season when present, else the season-less
+    # "2027 New Grad" bucket — instead of dropping it for lacking an explicit
+    # year (e.g. "Graduate Software Engineer" with no date).
+    if season in ("fall", "spring", "summer"):
+        return _NEWGRAD_CYCLES[(season, 2027)]
+    return _GENERAL_2027
 
 
 def categorize(title, description=""):
@@ -457,12 +427,14 @@ def categorize(title, description=""):
     d = description.lower() if description else ""
     combined = t + " " + d
 
-    is_intern = bool(re.search(r'\b(intern(ship)?s?|co[-\s]?ops?)\b', combined))
+    _intern_re = re.compile(r'\b(intern(ship)?s?|co[-\s]?ops?)\b')
+    title_is_intern = bool(_intern_re.search(t))
+    is_intern = bool(_intern_re.search(combined))
     is_new_grad = any(rx.search(combined) for rx in _NEW_GRAD_RE)
 
     category = None
     if is_intern:
-        category = _intern_category(t, d)
+        category = _intern_category(t, d, title_is_intern)
     # A posting can mention "internship" in prose yet actually be a new-grad
     # role; if the intern path found no cycle, fall through to the new-grad one.
     if category is None and is_new_grad:

@@ -31,6 +31,10 @@ RATE_LIMIT_DELAY = float(os.environ.get("RATE_LIMIT_DELAY", "0.25"))  # seconds 
 # Backend SWE keywords — job title must match at least one
 INCLUDE_KEYWORDS = [
     "software engineer", "software engineering", "swe",
+    "software developer", "software development engineer", "sde",
+    "programmer",
+    "software architect", "system architect", "systems architect",
+    "solutions architect", "cloud architect", "data architect", "architect",
     "backend", "back-end", "back end",
     "platform", "infrastructure",
     "distributed systems", "systems engineer",

@@ -45,6 +45,30 @@ python run.py --port 8080
 
 Then open **http://localhost:5000** in your browser.
 
+## Automatic scraping (Windows)
+
+To scrape automatically three times a day — **12:00 PM, 6:00 PM, and 12:30 AM** — register a Task Scheduler job:
+
+```bash
+python scripts/setup_scheduler.py
+```
+
+Each run uses `run.py --if-due`, which only scrapes if a scheduled time has
+passed since the last run. So if the laptop was asleep and missed one or more
+slots, it runs a **single** catch-up scrape on wake-up instead of one per
+missed slot. (It skips when offline and only runs one instance at a time.)
+
+```bash
+# What Task Scheduler runs under the hood — safe to run manually too
+python run.py --if-due
+
+schtasks /Query /TN "JobScraper" /V /FO LIST   # verify
+schtasks /Run   /TN "JobScraper"               # trigger a run now
+schtasks /Delete /TN "JobScraper" /F           # remove
+```
+
+On Linux/macOS the script prints equivalent `crontab` lines instead.
+
 ## Adding companies
 
 Edit `companies.yaml`. Each entry needs a name, ATS type, and either a `board_id` or `url`:
