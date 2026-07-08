@@ -1,5 +1,13 @@
 import re
+import unicodedata
 from config import INCLUDE_KEYWORDS, EXCLUDE_KEYWORDS
+
+
+def _fold(text):
+    """Lowercase and strip diacritics so 'Montréal' matches 'montreal' and
+    'Zürich' matches 'zurich' — bilingual boards post accented locations."""
+    return (unicodedata.normalize("NFKD", text)
+            .encode("ascii", "ignore").decode("ascii").lower())
 
 # Cycles relevant to a ~May 2027 graduate. Internships must fall before
 # graduation (Spring/Summer 2027); new-grad / early-career roles start on or
@@ -110,13 +118,20 @@ NON_US_INDICATORS = [
     "cape town", "south africa", "nairobi", "kenya", "lagos", "nigeria",
 ]
 
+# Accent-folded copies used for matching (so "Montréal" hits "montreal").
+_US_FOLDED = [_fold(x) for x in US_INDICATORS]
+_NON_US_FOLDED = [_fold(x) for x in NON_US_INDICATORS]
+
 
 # Seniority markers that disqualify a role from intern/new-grad categorization.
-# Matched as whole words against the title only.
+# Matched as whole words against the title only. "experienced" (and the French
+# "chevronné" on bilingual boards) is definitionally not new-grad — e.g. Tower
+# Research's "Ingénieur de logiciels chevronné / Experienced Software Developer".
 SENIORITY_EXCLUDE = re.compile(
     r'\b('
     r'senior|sr\.?|staff|principal|lead|director|manager|mgr\.?|'
     r'vp|head\s+of|distinguished|fellow|'
+    r'experienced|chevronn\w*|'
     r'ii|iii|iv|'
     r'l[3-9]|l1[0-9]'
     r')\b',
@@ -166,11 +181,11 @@ def is_us_location(location):
     if not location or not location.strip():
         return True  # unknown location — keep it rather than risk missing a US role
 
-    loc = location.lower().strip()
+    loc = _fold(location).strip()
 
-    has_non_us = any(indicator in loc for indicator in NON_US_INDICATORS)
+    has_non_us = any(indicator in loc for indicator in _NON_US_FOLDED)
 
-    has_us = any(indicator in loc for indicator in US_INDICATORS)
+    has_us = any(indicator in loc for indicator in _US_FOLDED)
     if not has_us and _state_pattern.search(location):
         has_us = True
     if not has_us:
@@ -292,8 +307,8 @@ def _grad_window_targets_2027(text):
 # "class of 2027", "graduating December 2026 - June 2027".
 NEW_GRAD_PATTERNS = [
     r'\bnew\s*grad(uate)?s?\b',
-    r'\buniversity\s+(?:grad(?:uate)?s?|hire[sd]?|hiring|program|recruit\w*)\b',
-    r'\bcampus\s+(?:hire[sd]?|hiring|recruit\w*|grad(?:uate)?s?|program)\b',
+    r'\buniversity\s+(?:grad(?:uate)?s?|program)\b',
+    r'\bcampus\s+(?:grad(?:uate)?s?|program)\b',
     r'\brecent\s*grad(uate)?s?\b',
     r'\bgraduate\s+(?:software\s+)?(?:engineer|developer|swe|architect|programmer)\b',
     r'\bgraduate\s+(?:program|rotation\w*|scheme|hir(?:e|ing))\b',
@@ -303,6 +318,24 @@ NEW_GRAD_PATTERNS = [
     r'\bgraduat(?:e|es|ing|ion)\s*(?:in|by|date|between)?\s*(?:\w+\s+)?20(2[6-9]|3\d)\b',
 ]
 _NEW_GRAD_RE = [re.compile(p, re.IGNORECASE) for p in NEW_GRAD_PATTERNS]
+
+# Recruiting-activity phrasings are trusted in the TITLE only: in description
+# prose they usually describe an experienced hire's duties or the hiring
+# process ("...through interviewing and occasional campus recruiting trips" on
+# Tower Research's Experienced Software Developer), not eligibility.
+NEW_GRAD_TITLE_PATTERNS = [
+    r'\b(?:university|campus)\s+(?:hire[sd]?|hiring|recruit\w*)\b',
+]
+_NEW_GRAD_TITLE_RE = [re.compile(p, re.IGNORECASE) for p in NEW_GRAD_TITLE_PATTERNS]
+
+
+# Rotational / development-program titles used for campus new-grad hiring
+# (e.g. Capital One's "Technology Development Program - 2027"). TITLE-only:
+# job descriptions routinely mention unrelated "development programs" (career
+# growth, leadership programs), which must not tag an experienced role.
+_PROGRAM_TITLE_RE = re.compile(
+    r'\b(?:development|rotation(?:al)?)\s+program\b', re.IGNORECASE
+)
 
 
 # (season, year) -> category, per role type.
@@ -430,7 +463,9 @@ def categorize(title, description=""):
     _intern_re = re.compile(r'\b(intern(ship)?s?|co[-\s]?ops?)\b')
     title_is_intern = bool(_intern_re.search(t))
     is_intern = bool(_intern_re.search(combined))
-    is_new_grad = any(rx.search(combined) for rx in _NEW_GRAD_RE)
+    is_new_grad = (any(rx.search(combined) for rx in _NEW_GRAD_RE)
+                   or any(rx.search(t) for rx in _NEW_GRAD_TITLE_RE)
+                   or bool(_PROGRAM_TITLE_RE.search(t)))
 
     category = None
     if is_intern:

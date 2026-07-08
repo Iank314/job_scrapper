@@ -327,8 +327,13 @@ companies:
   ats: playwright
   url: https://www.wellsfargojobs.com/en/jobs/?keywords=software+engineer+intern&location=United+States
 - name: Capital One
-  ats: playwright
-  url: https://www.capitalonecareers.com/search-jobs/software%20engineer%20intern/United%20States
+  ats: radancy
+  url: https://www.capitalonecareers.com
+  keywords:
+    - software engineer
+    - technology development program
+    - technology internship
+    - "2027"
 - name: Visa
   ats: smartrecruiters
   board_id: Visa

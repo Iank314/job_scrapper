@@ -59,6 +59,17 @@ INCLUDE_KEYWORDS = [
     "systems software",
     "core engineer",
     "runtime engineer",
+    # Campus-program titles that omit SWE words entirely — e.g. Capital One's
+    # "Technology Development Program - 2027" (their SWE new-grad program) and
+    # "Technology Internship Program - Summer 2027".
+    "technology development program",
+    "technology internship",
+    "technology intern",
+    # Quant-shop SWE titles (Tower Research, HRT, etc.) that omit
+    # "software engineer" — e.g. "Quantitative Developer Intern - Summer 2027".
+    "quantitative developer", "quant developer",
+    "python developer", "c++ developer", "java developer",
+    "low latency developer",
 ]
 
 # Jobs matching these keywords are excluded

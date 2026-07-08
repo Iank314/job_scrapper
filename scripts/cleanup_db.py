@@ -26,11 +26,12 @@ from filters import (
 def main(dry_run=False):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id, company, title, category, location FROM jobs")
+    c.execute("SELECT id, company, title, category, location, applied, accepted FROM jobs")
     rows = c.fetchall()
 
     to_delete = []
     to_update = []
+    protected = 0
     reasons = {
         "senior": 0,
         "not_backend": 0,
@@ -39,7 +40,12 @@ def main(dry_run=False):
         "wrong_cycle": 0,
     }
 
-    for row_id, company, title, category, location in rows:
+    for row_id, company, title, category, location, applied, accepted in rows:
+        # Never delete application history: rows the user applied to (or got
+        # an offer from) stay even if they no longer pass current filters.
+        if applied or accepted:
+            protected += 1
+            continue
         if is_senior_role(title):
             to_delete.append((row_id, company, title, category, "senior"))
             reasons["senior"] += 1
@@ -72,6 +78,7 @@ def main(dry_run=False):
             to_update.append((row_id, company, title, category, current_category))
 
     print(f"Total rows:    {len(rows)}")
+    print(f"Protected (applied/accepted): {protected}")
     print(f"Would delete:  {len(to_delete)}")
     print(f"  senior:      {reasons['senior']}")
     print(f"  not_backend: {reasons['not_backend']}")

@@ -9,6 +9,7 @@ from scraper.smartrecruiters import SmartRecruitersScraper
 from scraper.workday import WorkdayScraper
 from scraper.icims import ICIMSScraper
 from scraper.generic import GenericScraper
+from scraper.radancy import RadancyScraper
 from scraper.playwright_scraper import PlaywrightScraper, close_browser
 
 SCRAPERS = {
@@ -19,6 +20,7 @@ SCRAPERS = {
     "workday": WorkdayScraper,
     "icims": ICIMSScraper,
     "generic": GenericScraper,
+    "radancy": RadancyScraper,
     "playwright": PlaywrightScraper,
 }
 
