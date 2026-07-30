@@ -56,6 +56,25 @@ HREF_SKIP_PATTERN = re.compile(
 )
 
 
+# Chromium net errors that mean "the connection broke", not "this page is bad".
+# Honeywell's CDN intermittently kills the HTTP/2 stream mid-navigation and the
+# very next attempt returns 200, so one flaky socket shouldn't cost the company
+# for the run. Timeouts are deliberately NOT retried: they would double the
+# per-company wall clock and blow the PER_COMPANY_BUDGET_S budget.
+# (Forcing --disable-http2 was tried instead and made Honeywell time out.)
+TRANSIENT_NAV_ERRORS = (
+    "ERR_HTTP2_PROTOCOL_ERROR",
+    "ERR_CONNECTION_RESET",
+    "ERR_CONNECTION_CLOSED",
+    "ERR_CONNECTION_ABORTED",
+    "ERR_SOCKET_NOT_CONNECTED",
+    "ERR_EMPTY_RESPONSE",
+    "ERR_NETWORK_CHANGED",
+    "ERR_QUIC_PROTOCOL_ERROR",
+)
+NAV_RETRIES = 2          # total attempts on a transient net error
+NAV_RETRY_WAIT_MS = 1500
+
 _playwright = None
 _browser = None
 
@@ -126,7 +145,7 @@ class PlaywrightScraper(BaseScraper):
         )
         page = context.new_page()
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+            _goto_with_retry(page, url)
             try:
                 page.wait_for_load_state("networkidle", timeout=NETWORKIDLE_TIMEOUT_MS)
             except Exception:
@@ -155,6 +174,18 @@ class PlaywrightScraper(BaseScraper):
                 context.close()
             except Exception:
                 pass
+
+
+def _goto_with_retry(page, url):
+    """Navigate to url, retrying only transient connection-level net errors."""
+    for attempt in range(NAV_RETRIES):
+        try:
+            return page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+        except Exception as e:
+            transient = any(code in str(e) for code in TRANSIENT_NAV_ERRORS)
+            if not transient or attempt == NAV_RETRIES - 1:
+                raise
+            page.wait_for_timeout(NAV_RETRY_WAIT_MS)
 
 
 def _auto_scroll(page):
