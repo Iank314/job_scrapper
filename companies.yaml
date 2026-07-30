@@ -167,9 +167,12 @@ companies:
 - name: Airtable
   ats: greenhouse
   board_id: airtable
+# Retool moved off Ashby to Gem (jobs.gem.com/retool); the `retool` Ashby board
+# 404s. The Gem board is a JS SPA with no public JSON API, but it renders real
+# anchors under playwright. Expect 0 rows while they list only senior roles.
 - name: Retool
-  ats: ashby
-  board_id: retool
+  ats: playwright
+  url: https://jobs.gem.com/retool
 - name: Linear
   ats: ashby
   board_id: linear
@@ -475,9 +478,12 @@ companies:
 - name: Roblox
   ats: greenhouse
   board_id: roblox
+# Unity left Greenhouse (board_id unity3d now 404s). unity.com/careers/positions
+# is a Next.js SPA that 403s headless Chrome, but its RSC payload links straight
+# to the Workday tenant below, which serves the same 40 postings over cxs.
 - name: Unity
-  ats: greenhouse
-  board_id: unity3d
+  ats: workday
+  url: https://unitytech.wd1.myworkdayjobs.com/Unity
 - name: Bungie
   ats: greenhouse
   board_id: bungie
@@ -629,18 +635,24 @@ companies:
 - name: Fidelity Investments
   ats: playwright
   url: https://jobs.fidelity.com/search-jobs/software%20engineer%20intern
-- name: Charles Schwab
-  ats: icims
-  url: https://career-schwab.icims.com/jobs/search
+# Charles Schwab: disabled, not broken config. This iCIMS tenant sits behind an
+# AWS WAF challenge that returns 405 to *every* GET (even `/`) and serves a
+# "confirm you are human" CAPTCHA that real headless Chromium cannot clear
+# either. There is no scrape to fix here — check this one by hand.
+# - name: Charles Schwab
+#   ats: icims
+#   url: https://career-schwab.icims.com/jobs/search
 - name: T. Rowe Price
   ats: workday
   url: https://troweprice.wd5.myworkdayjobs.com/en-US/TRowePrice
 - name: Vanguard
   ats: workday
   url: https://vanguard.wd5.myworkdayjobs.com/en-US/vanguard_external
-- name: State Farm
-  ats: icims
-  url: https://careers-statefarm.icims.com/jobs/search
+# State Farm: disabled for the same AWS WAF CAPTCHA reason as Charles Schwab
+# above — 405 on every GET, unsolvable headless. Check by hand.
+# - name: State Farm
+#   ats: icims
+#   url: https://careers-statefarm.icims.com/jobs/search
 - name: Progressive
   ats: playwright
   url: https://www.progressive.com/careers/
@@ -782,9 +794,12 @@ companies:
 - name: athenahealth
   ats: workday
   url: https://athenahealth.wd1.myworkdayjobs.com/en-US/external
-- name: Atomic Semi
+# Atomic Semi rebranded to Fab2 (atomicsemi.com now redirects to fab2.com), and
+# the old `atomicsemi` Ashby board 404s. Note the bare `atomic` slug is a
+# different company (Atomic, the VC studio) — don't "fix" this back to that.
+- name: Fab2 (Atomic Semi)
   ats: ashby
-  board_id: atomicsemi
+  board_id: fab2
 - name: ATPCO
   ats: smartrecruiters
   board_id: ATPCO1
