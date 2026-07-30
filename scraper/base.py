@@ -1,5 +1,7 @@
 import time
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from config import REQUEST_TIMEOUT, RATE_LIMIT_DELAY
 from filters import matches_backend_swe, categorize, is_us_location, requires_phd
 from db import sync_company_jobs
@@ -28,6 +30,28 @@ BROWSER_HEADERS = {
 }
 
 
+# With MAX_WORKERS threads negotiating TLS at once, hosts intermittently drop
+# the handshake and requests raises SSLError(SSLEOFError: UNEXPECTED_EOF...).
+# Every host that failed this way (Nvidia, Dell, Intel, Salesforce, Adobe,
+# Cisco, Broadcom, HP, Cohere, OpenAI, DeepMind, Hugging Face) answers fine on
+# a retry, so one flaky handshake shouldn't cost the company for the whole run.
+#
+# urllib3 classifies SSLError as neither a connect nor a read error, so it is
+# the `total` budget that absorbs these — connect/read alone would not retry.
+# allowed_methods=None is required because Workday's cxs job search is a POST,
+# and the default allowlist is idempotent-methods-only: it would skip retrying
+# exactly the requests that fail most. raise_on_status=False keeps the final
+# response so raise_for_status() can still produce our 403/404 messages.
+RETRY_POLICY = Retry(
+    total=3,
+    backoff_factor=0.7,  # ~0s, 0.7s, 1.4s between attempts
+    status_forcelist=(429, 500, 502, 503, 504),
+    allowed_methods=None,
+    raise_on_status=False,
+    respect_retry_after_header=True,
+)
+
+
 class BaseScraper:
     ats_name = "base"
     use_browser_headers = False  # Subclasses set True for HTML scraping
@@ -36,6 +60,9 @@ class BaseScraper:
         self.session = requests.Session()
         headers = BROWSER_HEADERS if self.use_browser_headers else API_HEADERS
         self.session.headers.update(headers)
+        adapter = HTTPAdapter(max_retries=RETRY_POLICY)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
 
     def fetch_json(self, url, method="GET", **kwargs):
         kwargs.setdefault("timeout", REQUEST_TIMEOUT)
@@ -60,8 +87,21 @@ class BaseScraper:
                 print(f"  [!] {self.ats_name}/{name}: BLOCKED (403 Forbidden) — site requires browser/JS")
             elif status == 404:
                 print(f"  [!] {self.ats_name}/{name}: URL not found (404) — check companies.yaml")
+            elif status == 405:
+                print(f"  [!] {self.ats_name}/{name}: HTTP 405 — endpoint rejects GET "
+                      f"(often an AWS WAF challenge); needs the playwright scraper")
             else:
                 print(f"  [!] {self.ats_name}/{name}: HTTP {status} — {e}")
+            return set()
+        except (requests.exceptions.SSLError, requests.exceptions.ConnectionError) as e:
+            # Retries already exhausted by RETRY_POLICY — the full urllib3 chain
+            # is noise, so report the host and the underlying reason only.
+            reason = "TLS handshake dropped" if isinstance(e, requests.exceptions.SSLError) else "connection failed"
+            host = getattr(e.request, "url", "?") if e.request is not None else "?"
+            print(f"  [!] {self.ats_name}/{name}: {reason} after retries — {host}")
+            return set()
+        except requests.exceptions.Timeout:
+            print(f"  [!] {self.ats_name}/{name}: timed out after {REQUEST_TIMEOUT}s")
             return set()
         except Exception as e:
             print(f"  [!] {self.ats_name}/{name}: {e}")
