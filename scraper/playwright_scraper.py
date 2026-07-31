@@ -54,7 +54,7 @@ HREF_SKIP_PATTERN = re.compile(
     r'/login|/signin|/register|/about|/contact|/faq|/help)',
     re.IGNORECASE
 )
-
+ 
 
 # Chromium net errors that mean "the connection broke", not "this page is bad".
 # Honeywell's CDN intermittently kills the HTTP/2 stream mid-navigation and the
