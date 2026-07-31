@@ -15,7 +15,7 @@ DEFAULT_SEARCH_TERMS = (
 
 LOCALE_RE = re.compile(r"^[a-z]{2}-[A-Z]{2}$")
 
-
+ 
 class WorkdayScraper(BaseScraper):
     ats_name = "workday"
     use_browser_headers = True
