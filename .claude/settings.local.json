@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(curl:*)",
       "WebSearch",
@@ -37,7 +36,9 @@
       "Bash(echo \"Hadrian LV hadrian: $\\(curl -s -o /dev/null -w '%{http_code}' 'https://api.lever.co/v0/postings/hadrian'\\)\")",
       "Bash(echo \"Hadrian AS hadrian-automation: $\\(curl -s 'https://api.ashbyhq.com/posting-api/job-board/hadrian-automation')",
       "Bash(gh api:*)",
-      "Bash(pip install:*)"
-    ]
+      "Bash(pip install:*)",
+      "Bash(curl -s -o /dev/null -w \"MS job URL: %{http_code}\\\\n\" \"https://apply.careers.microsoft.com/careers/job/1970393556951950\")"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }

@@ -10,6 +10,8 @@ from scraper.workday import WorkdayScraper
 from scraper.icims import ICIMSScraper
 from scraper.generic import GenericScraper
 from scraper.radancy import RadancyScraper
+from scraper.microsoft import MicrosoftScraper
+from scraper.workable import WorkableScraper
 from scraper.playwright_scraper import PlaywrightScraper, close_browser
 
 SCRAPERS = {
@@ -21,6 +23,8 @@ SCRAPERS = {
     "icims": ICIMSScraper,
     "generic": GenericScraper,
     "radancy": RadancyScraper,
+    "microsoft": MicrosoftScraper,
+    "workable": WorkableScraper,
     "playwright": PlaywrightScraper,
 }
 

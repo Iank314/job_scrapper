@@ -316,8 +316,69 @@ NEW_GRAD_PATTERNS = [
     r'\bentry[-\s]?level\b',
     r'\bclass\s*of\s*20(2[6-9]|3\d)\b',
     r'\bgraduat(?:e|es|ing|ion)\s*(?:in|by|date|between)?\s*(?:\w+\s+)?20(2[6-9]|3\d)\b',
+    # Year FIRST, grad word second — the mirror image of the pattern above and
+    # just as common: "Software Engineer (C++ or Python) - 2027 Grads" (Hudson
+    # River Trading), "Software Engineer (2027 Graduates) (Campus)" (Appian),
+    # "2027 Graduate Program" (Old Mission). Without this the year-before form
+    # read as an ordinary experienced posting and was dropped outright.
+    r'\b20(2[6-9]|3\d)\s+grad(?:uate)?s?\b',
 ]
 _NEW_GRAD_RE = [re.compile(p, re.IGNORECASE) for p in NEW_GRAD_PATTERNS]
+
+
+# Descriptions frequently name an early-career cycle in order to EXCLUDE it:
+#   Airtable  "Please note this is not a new grad position."
+#   Airtable  "Please note this is not an early career position."
+#   Stripe    "if you are an intern, new grad, staff, ... please do not apply
+#              using this posting"
+#   SpaceX    "positions ranging from entry-level to very experienced engineers"
+# Read naively these all look like new-grad signals, and they were the single
+# biggest polluter of the "2027 New Grad" bucket. Negation is scoped to the
+# sentence containing the match: cues in a *neighbouring* sentence ("This is a
+# new grad role. Experienced candidates should not apply.") must not disqualify.
+_SENTENCE_SPLIT_RE = re.compile(r'(?<=[.!?;:])\s+|\n+')
+
+# Kept deliberately narrow — "do not hesitate to apply" must not read as a
+# negation, so a bare "not" is not enough; it has to be a copular//prepositional
+# denial or an explicit range spanning seniority levels.
+_NEGATION_BEFORE_RE = re.compile(
+    r"\b(?:is|are|was|were|it'?s|this)?\s*\bnot\s+(?:a|an|for|open\s+to|aimed|"
+    r"intended|designed|targeted)\b"
+    r"|\bisn'?t\b|\baren'?t\b"
+    r"|\bnon[-\s]?(?:grad|entry)\b"
+    r"|\b(?:excluding|other\s+than|rather\s+than|instead\s+of|ranging\s+from)\b",
+    re.IGNORECASE,
+)
+
+_NEGATION_AFTER_RE = re.compile(
+    r"\b(?:do|does|should|must|please)\s+not\s+apply\b"
+    r"|\bdon'?t\s+apply\b"
+    r"|\bnot\s+eligible\b",
+    re.IGNORECASE,
+)
+
+
+def _description_signal(regexes, description):
+    """True if any regex matches a sentence of `description` un-negated.
+
+    Title matches are never routed through here — a title that says "new grad"
+    means it. This guards description prose only.
+    """
+    if not description:
+        return False
+    for sentence in _SENTENCE_SPLIT_RE.split(description):
+        if not sentence:
+            continue
+        for rx in regexes:
+            m = rx.search(sentence)
+            if not m:
+                continue
+            if _NEGATION_BEFORE_RE.search(sentence[:m.start()]):
+                continue
+            if _NEGATION_AFTER_RE.search(sentence[m.end():]):
+                continue
+            return True
+    return False
 
 # Recruiting-activity phrasings are trusted in the TITLE only: in description
 # prose they usually describe an experienced hire's duties or the hiring
@@ -325,6 +386,20 @@ _NEW_GRAD_RE = [re.compile(p, re.IGNORECASE) for p in NEW_GRAD_PATTERNS]
 # Tower Research's Experienced Software Developer), not eligibility.
 NEW_GRAD_TITLE_PATTERNS = [
     r'\b(?:university|campus)\s+(?:hire[sd]?|hiring|recruit\w*)\b',
+    # A bare "Grad" / "Campus" token. Safe in a title because the role still has
+    # to clear the SWE keyword gate and the seniority gate — "Campus Recruiter"
+    # dies on the exclude list, "Campus Planning Manager" on seniority — but in
+    # description prose these words are far too loose to trust.
+    #   Pure Storage  "Software Engineer Grad"
+    #   Appian        "Software Engineer (2027 Graduates) (Campus)"
+    # \b keeps "undergrad" from matching, since there is no boundary mid-word.
+    r'\bgrads?\b',
+    r'\bcampus\b',
+    # "Associate <discipline> Engineer" is a standard campus-hire title at
+    # defense and enterprise employers — Northrop Grumman's "2027 Associate
+    # Software Engineer", Appian's "Associate Application Engineer".
+    r'\bassociate\s+(?:software|systems?|data|cloud|security|network|test|'
+    r'application|platform)\s+(?:engineer|developer)\b',
 ]
 _NEW_GRAD_TITLE_RE = [re.compile(p, re.IGNORECASE) for p in NEW_GRAD_TITLE_PATTERNS]
 
@@ -401,18 +476,24 @@ def _intern_category(t, d, title_is_intern):
     if not title_is_intern:
         return None
     season = _season_from(t) or _season_from(d)
-    year = _year_from(t) or _year_from(d)
+    # Only the TITLE's year is trusted here. An adjacent "{season} {year}" token
+    # in the description was already handled above; a bare year left in the prose
+    # is usually the candidate's graduation date ("a related field graduating in
+    # December 2026 or later"), and letting that win knocked Nuro's and Ramp's
+    # title-level interns out of the live cycles and into the new-grad bucket.
     # Recall-first: the only live intern cycles for the ~2027 class are Spring
     # and Summer 2027 (2026 cycles were already excluded above by title), so a
     # missing year defaults to 2027 rather than dropping the role.
+    year = _year_from(t)
     if year is None:
         year = 2027
     if season:
-        return _INTERN_CYCLES.get((season, year))
-    # Title says intern but names no season — default to the dominant cycle.
-    if year == 2027:
-        return "Summer 2027 Intern"
-    return None
+        cycle = _INTERN_CYCLES.get((season, year))
+        if cycle:
+            return cycle
+    # Title says intern, named no past cycle, and gave no usable season/year —
+    # default to the dominant live cycle rather than dropping a real posting.
+    return "Summer 2027 Intern"
 
 
 def _newgrad_category(t, d, combined):
@@ -431,6 +512,14 @@ def _newgrad_category(t, d, combined):
     year = _year_from(t) or _year_from(d)
     if season and year and (season, year) in _NEWGRAD_CYCLES:
         return _NEWGRAD_CYCLES[(season, year)]
+    # A season-less title that still names a year names a *graduating class*:
+    # "Software Engineer - New Grad 2026" (Cerebras) is hiring the 2026 class,
+    # so it belongs in the Fall 2026 bucket, not the 2027 one it used to land
+    # in. Only the title's year is trusted — description prose is full of
+    # unrelated years. Mislabeling these was what let last cycle's postings
+    # dilute the bucket that actually matches the target class.
+    if _year_from(t) == 2026:
+        return "Fall 2026 New Grad"
     # Recall-first: reaching here means is_new_grad matched (a genuine new-grad /
     # early-career / campus signal) and the title named no past 2026 cycle, so
     # this is a role for the target class that simply didn't spell out a cycle.
@@ -456,14 +545,20 @@ def categorize(title, description=""):
     if is_senior_role(title):
         return None
 
-    t = title.lower()
-    d = description.lower() if description else ""
+    # Underscores are word characters, so they suppress the \b that every
+    # pattern below relies on: GE Appliances posts "Software Engineering
+    # Co-op_Spring 2027", where \bco[-\s]?ops?\b cannot match across "op_S" and
+    # the "Spring 2027" cycle token is likewise invisible. Treat "_" as a
+    # separator so those titles parse the same as their spaced equivalents.
+    t = title.lower().replace("_", " ")
+    d = description.lower().replace("_", " ") if description else ""
     combined = t + " " + d
 
     _intern_re = re.compile(r'\b(intern(ship)?s?|co[-\s]?ops?)\b')
     title_is_intern = bool(_intern_re.search(t))
-    is_intern = bool(_intern_re.search(combined))
-    is_new_grad = (any(rx.search(combined) for rx in _NEW_GRAD_RE)
+    is_intern = title_is_intern or _description_signal([_intern_re], d)
+    is_new_grad = (any(rx.search(t) for rx in _NEW_GRAD_RE)
+                   or _description_signal(_NEW_GRAD_RE, d)
                    or any(rx.search(t) for rx in _NEW_GRAD_TITLE_RE)
                    or bool(_PROGRAM_TITLE_RE.search(t)))
 
@@ -472,6 +567,9 @@ def categorize(title, description=""):
         category = _intern_category(t, d, title_is_intern)
     # A posting can mention "internship" in prose yet actually be a new-grad
     # role; if the intern path found no cycle, fall through to the new-grad one.
-    if category is None and is_new_grad:
+    # But never when the TITLE says intern — that is the authoritative signal,
+    # and the description's year is usually the candidate's *graduation* date
+    # ("graduating in December 2026 or later"), not the internship's cycle.
+    if category is None and is_new_grad and not title_is_intern:
         category = _newgrad_category(t, d, combined)
     return category

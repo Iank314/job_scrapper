@@ -48,7 +48,13 @@ JOB_TEXT_PATTERN = re.compile(
     re.IGNORECASE
 )
 
-# Hrefs that almost certainly aren't job posting links
+# Hrefs that almost certainly aren't job posting links.
+#
+# These are matched anywhere in the href, which makes them dangerous for career
+# sites hosted under an informational path: every Google posting lives at
+# google.com/**about**/careers/applications/jobs/results/<id>-<slug>, so a bare
+# `/about` here silently dropped 100% of Google's jobs. A href that matches
+# JOB_HREF_PATTERN is therefore exempt from this list — see _generic_extract.
 HREF_SKIP_PATTERN = re.compile(
     r'(^#|^javascript:|^mailto:|/privacy|/terms|/cookie|/accessibility|'
     r'/login|/signin|/register|/about|/contact|/faq|/help)',
@@ -120,11 +126,31 @@ class PlaywrightScraper(BaseScraper):
         pass
 
     def _fetch_jobs(self, company_cfg):
-        import time
-        url = company_cfg.get("url", "")
-        name = company_cfg.get("name", "?")
-        if not url:
+        """Scrape every configured URL for this company and merge the results.
+
+        `url:` may be a single string or a list. Search-driven career SPAs only
+        return what the query asks for, so an intern-keyword URL structurally
+        cannot surface new-grad roles (and vice versa) — a list lets one company
+        cover both cycles without duplicating the entry.
+        """
+        urls = company_cfg.get("url", "")
+        if isinstance(urls, str):
+            urls = [urls] if urls else []
+        if not urls:
             return []
+
+        merged = []
+        seen = set()
+        for url in urls:
+            for job in self._fetch_one_url(company_cfg, url):
+                if job["url"] not in seen:
+                    seen.add(job["url"])
+                    merged.append(job)
+        return merged
+
+    def _fetch_one_url(self, company_cfg, url):
+        import time
+        name = company_cfg.get("name", "?")
 
         try:
             browser = _ensure_browser()
@@ -155,7 +181,7 @@ class PlaywrightScraper(BaseScraper):
 
             site = company_cfg.get("site", "generic")
             handler = SITE_HANDLERS.get(site, _generic_extract)
-            jobs = handler(page, company_cfg)
+            jobs = handler(page, company_cfg, url)
             elapsed = time.monotonic() - started
             if elapsed > PER_COMPANY_BUDGET_S:
                 print(f"  [.] playwright/{name}: slow ({elapsed:.0f}s)", flush=True)
@@ -240,7 +266,41 @@ JOB_HREF_PATTERN = re.compile(
 )
 
 
-def _generic_extract(page, company_cfg):
+# Accessible names on job cards are usually a call-to-action wrapped around the
+# real title — Google renders a text-less button labelled "Learn more about
+# Software Engineer III, Cloud Networking". Strip the lead-in so what reaches
+# the title filter is the role, not the verb.
+ARIA_LEADIN_RE = re.compile(
+    r'^(?:learn\s+more|read\s+more|more\s+info(?:rmation)?|find\s+out\s+more|'
+    r'view|see|open|go\s+to|apply(?:\s+now)?|apply\s+to|details?)'
+    r'(?:\s+(?:about|for|to|on))?\s*[:\-–]?\s*',
+    re.IGNORECASE
+)
+
+# Trailing chrome some sites append to the accessible name.
+ARIA_TRAILER_RE = re.compile(
+    r'\s*[,–-]?\s*(?:opens?\s+in\s+(?:a\s+)?new\s+(?:tab|window)|'
+    r'\(opens?\s+in\s+(?:a\s+)?new\s+(?:tab|window)\))\s*\.?$',
+    re.IGNORECASE
+)
+
+
+def _clean_aria_label(aria):
+    """Reduce an accessible name to the job title it wraps."""
+    if not aria:
+        return ""
+    cleaned = ARIA_TRAILER_RE.sub("", aria.strip())
+    # Stacked lead-ins are common ("View details for X") — strip repeatedly,
+    # but never all the way to empty.
+    for _ in range(3):
+        stripped = ARIA_LEADIN_RE.sub("", cleaned).strip()
+        if stripped == cleaned or not stripped:
+            break
+        cleaned = stripped
+    return cleaned[:180]
+
+
+def _generic_extract(page, company_cfg, base_url=None):
     """Pull candidate job postings from all <a> tags on the page.
 
     A link is kept if EITHER:
@@ -251,13 +311,16 @@ def _generic_extract(page, company_cfg):
     rather than the role title. When the URL rule fires we try to pick up a
     nearby title from the parent element's text.
     """
-    base_url = company_cfg.get("url", "")
+    if not base_url:
+        cfg_url = company_cfg.get("url", "")
+        base_url = cfg_url[0] if isinstance(cfg_url, list) and cfg_url else cfg_url
     results = []
     seen = set()
 
     try:
-        # For each anchor, also capture the closest ancestor's visible text
-        # so we have a fallback title when the link itself just says "Apply".
+        # For each anchor also capture (a) its accessible name and (b) the
+        # closest ancestor's visible text, so there is still a title when the
+        # link itself renders as "Apply", an icon, or nothing at all.
         links = page.evaluate("""
             () => {
                 const out = [];
@@ -265,20 +328,26 @@ def _generic_extract(page, company_cfg):
                 for (const a of anchors) {
                     const text = (a.innerText || a.textContent || '').trim();
                     const href = a.href || '';
-                    // Walk up a few levels to find a richer title
+                    const aria = (a.getAttribute('aria-label') ||
+                                  a.getAttribute('title') || '').trim();
+                    // Walk up for a richer ancestor. The ancestor must be
+                    // meaningfully longer than the link text, otherwise a
+                    // wrapper reading just "Learn more" wins and the real job
+                    // card (title + location + team) is never reached.
+                    const floor = Math.max(text.length, 20);
                     let ctx = '';
                     let ctxFull = '';
                     let node = a.parentElement;
-                    for (let i = 0; i < 4 && node; i++) {
+                    for (let i = 0; i < 5 && node; i++) {
                         const t = (node.innerText || '').trim();
-                        if (t && t.length > text.length && t.length < 400) {
+                        if (t && t.length > floor && t.length < 400) {
                             ctxFull = t;
                             ctx = t.split('\\n')[0].trim();
                             break;
                         }
                         node = node.parentElement;
                     }
-                    out.push({ text, href, ctx, ctxFull });
+                    out.push({ text, href, aria, ctx, ctxFull });
                 }
                 return out;
             }
@@ -289,15 +358,22 @@ def _generic_extract(page, company_cfg):
     for link in links:
         text = (link.get("text") or "").strip()
         href = (link.get("href") or "").strip()
+        aria = _clean_aria_label(link.get("aria") or "")
         ctx = (link.get("ctx") or "").strip()
         ctx_full = (link.get("ctxFull") or ctx).strip()
 
-        if not href or HREF_SKIP_PATTERN.search(href):
+        if not href:
             continue
 
         text_hit = bool(text) and 5 <= len(text) <= 200 and JOB_TEXT_PATTERN.search(text)
         href_hit = bool(JOB_HREF_PATTERN.search(href))
         if not (text_hit or href_hit):
+            continue
+
+        # A href that looks like a job *detail* URL outranks the boilerplate
+        # skip list — otherwise career sites nested under /about, /help, etc.
+        # lose every posting to a substring match on their own base path.
+        if not href_hit and HREF_SKIP_PATTERN.search(href):
             continue
 
         abs_href = _absolutize(href, base_url)
@@ -307,13 +383,17 @@ def _generic_extract(page, company_cfg):
             continue
 
         # Pick the best title: prefer visible text if it looks like a role,
-        # otherwise use the ancestor context text.
+        # then the accessible name, then the ancestor context text.
         if text_hit:
             title = text
         elif ctx and JOB_TEXT_PATTERN.search(ctx):
             title = ctx[:180]
+        elif aria and 5 <= len(aria) <= 200:
+            title = aria
         elif text and 5 <= len(text) <= 200:
             title = text
+        elif ctx and 5 <= len(ctx) <= 200:
+            title = ctx
         else:
             # No usable title — skip rather than pollute the DB with "Apply".
             continue
@@ -330,7 +410,8 @@ def _generic_extract(page, company_cfg):
 
 
 # Per-site handlers — register here when generic extraction isn't sufficient.
-# Signature: handler(page, company_cfg) -> list[{title, url, location, date_posted, description?}]
+# Signature: handler(page, company_cfg, base_url)
+#   -> list[{title, url, location, date_posted, description?}]
 SITE_HANDLERS = {
     "generic": _generic_extract,
 }

@@ -32,7 +32,15 @@ RATE_LIMIT_DELAY = float(os.environ.get("RATE_LIMIT_DELAY", "0.25"))  # seconds 
 INCLUDE_KEYWORDS = [
     "software engineer", "software engineering", "swe",
     "software developer", "software development engineer", "sde",
+    # Amazon titles its campus roles "Software Dev Engineer Intern", which
+    # neither "software developer" nor "software development engineer" match.
+    "software dev engineer", "software dev",
+    # Inverted "{noun}, Software" titles — SpaceX posts its campus SWE role as
+    # "New Graduate Engineer, Software (Starlink)".
+    "engineer, software", "developer, software", "engineering, software",
     "programmer",
+    # Jane Street files infrastructure SWE roles under "Linux Engineer".
+    "linux engineer", "unix engineer",
     "software architect", "system architect", "systems architect",
     "solutions architect", "cloud architect", "data architect", "architect",
     "backend", "back-end", "back end",
