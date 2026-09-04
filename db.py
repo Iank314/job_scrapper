@@ -50,7 +50,8 @@ def init_db():
             trashed INTEGER DEFAULT 0,
             trashed_at TEXT,
             accepted INTEGER DEFAULT 0,
-            accepted_at TEXT
+            accepted_at TEXT,
+            notified INTEGER DEFAULT 0
         )
     """)
     # Handle upgrade from older schemas: add columns if they're missing.
@@ -65,12 +66,21 @@ def init_db():
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {ddl}")
+    # `notified` records whether a new job's alert was actually *delivered*, so
+    # a webhook failure retries on the next run instead of the alert being lost
+    # forever. It gets its own migration because rows predating the column have
+    # already been seen — backfilling them to 1 stops the upgrade from replaying
+    # the entire table as "new".
+    if "notified" not in existing:
+        conn.execute("ALTER TABLE jobs ADD COLUMN notified INTEGER DEFAULT 0")
+        conn.execute("UPDATE jobs SET notified = 1")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_active ON jobs(active)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_applied ON jobs(applied)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_trashed ON jobs(trashed)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_accepted ON jobs(accepted)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_notified ON jobs(notified)")
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_jobs_open_sort "
         "ON jobs(active, applied, trashed, date_scraped)"
@@ -203,6 +213,61 @@ def upsert_job(company, title, url, category, source_ats, location=None, date_po
         """, (company, title, url, category, source_ats, location, date_posted, now))
         conn.commit()
         return not exists
+    finally:
+        conn.close()
+        _write_lock.release()
+
+
+def pending_notifications():
+    """Jobs inserted but never successfully announced, oldest first.
+
+    Delivery is tracked in the DB rather than in the scrape's in-memory list
+    because a webhook outage would otherwise lose the alert permanently: the
+    rows are already committed, so the next run no longer sees them as new.
+    """
+    conn = get_conn()
+    try:
+        rows = conn.execute("""
+            SELECT company, title, url, category, location
+            FROM jobs
+            WHERE notified = 0 AND active = 1
+            ORDER BY id
+        """).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def mark_notified(urls):
+    """Flag jobs as announced. Only called for alerts that actually sent."""
+    urls = [u for u in urls if u]
+    if not urls:
+        return 0
+    conn = get_conn()
+    _write_lock.acquire()
+    try:
+        cur = conn.executemany(
+            "UPDATE jobs SET notified = 1 WHERE url = ?", [(u,) for u in urls]
+        )
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
+        _write_lock.release()
+
+
+def discard_stale_notifications():
+    """Stop chasing alerts for jobs that went inactive before they ever sent.
+
+    Without this, a posting that disappears during a webhook outage stays
+    pending forever, since pending_notifications() only returns active rows.
+    """
+    conn = get_conn()
+    _write_lock.acquire()
+    try:
+        cur = conn.execute("UPDATE jobs SET notified = 1 WHERE notified = 0 AND active = 0")
+        conn.commit()
+        return cur.rowcount
     finally:
         conn.close()
         _write_lock.release()

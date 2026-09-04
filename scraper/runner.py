@@ -1,6 +1,7 @@
 import yaml
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from config import COMPANIES_FILE, MAX_WORKERS
+from db import pending_notifications, mark_notified, discard_stale_notifications
 from notify import send_new_jobs
 from scraper.greenhouse import GreenhouseScraper
 from scraper.lever import LeverScraper
@@ -76,8 +77,22 @@ def run_all():
 
     if all_new_jobs:
         print(f"\n{len(all_new_jobs)} new jobs found this run.")
-        send_new_jobs(all_new_jobs)
     else:
         print("\nNo new jobs this run.")
+
+    # Alerts are driven off the DB rather than `all_new_jobs` so that anything a
+    # previous run failed to deliver is picked up here, and so a failure now
+    # stays pending instead of vanishing with this process.
+    discard_stale_notifications()
+    pending = pending_notifications()
+    if pending:
+        backlog = len(pending) - len(all_new_jobs)
+        if backlog > 0:
+            print(f"Retrying {backlog} alert(s) undelivered from an earlier run.")
+        delivered = send_new_jobs(pending)
+        mark_notified([job["url"] for job in delivered])
+        undelivered = len(pending) - len(delivered)
+        if undelivered:
+            print(f"  [!] {undelivered} alert(s) undelivered - will retry next run.")
 
     print("Scraping complete.")
