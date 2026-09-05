@@ -9,15 +9,14 @@ def _fold(text):
     return (unicodedata.normalize("NFKD", text)
             .encode("ascii", "ignore").decode("ascii").lower())
 
-# Cycles relevant to a ~May 2027 graduate. Internships must fall before
-# graduation (Spring/Summer 2027); new-grad / early-career roles start on or
-# after it (Summer/Fall 2027, plus the season-less "2027 New Grad" bucket for
+# Cycles relevant to a ~May 2027 graduate. The only internship cycle targeted
+# is Summer 2027 (the Spring/Winter 2027 co-op term is not wanted);
+# new-grad / early-career roles start on or after graduation (Summer/Fall 2027, plus the season-less "2027 New Grad" bucket for
 # campus / class-of-2027 / "graduating Dec 2026 - June 2027" postings).
 # The whole Fall 2026 cycle was dropped (intern and new grad) — that
 # recruiting season is over, so those postings are noise now.
 ALLOWED_CATEGORIES = {
     # Internships — still enrolled.
-    "Spring 2027 Intern",
     "Summer 2027 Intern",
     # New grad / early career — full-time, starts on/after May 2027 grad.
     "Spring 2027 New Grad",
@@ -433,10 +432,18 @@ _PROGRAM_TITLE_RE = re.compile(
 
 # (season, year) -> category, per role type.
 _INTERN_CYCLES = {
-    ("spring", 2027): "Spring 2027 Intern",
     ("summer", 2027): "Summer 2027 Intern",
 }
-_INTERN_ORDER = ["Spring 2027 Intern", "Summer 2027 Intern"]
+_INTERN_ORDER = ["Summer 2027 Intern"]
+
+# Intern seasons that are no longer targeted. These have to be rejected
+# *explicitly* rather than merely left out of _INTERN_CYCLES: the tail of
+# _intern_category() defaults any intern title it cannot place to
+# "Summer 2027 Intern", so a season that is simply unrecognised gets
+# silently relabelled Summer instead of dropped — the same trap that
+# retiring the Fall 2026 cycle hit on the new-grad side.
+# _season_from() folds 'winter' into 'spring', so this covers both.
+_DROPPED_INTERN_SEASONS = {"spring"}
 
 _NEWGRAD_CYCLES = {
     ("spring", 2027): "Spring 2027 New Grad",
@@ -498,13 +505,17 @@ def _intern_category(t, d, title_is_intern):
     if not title_is_intern:
         return None
     season = _season_from(t) or _season_from(d)
+    # Spring/winter co-op terms are not a target cycle — drop rather than
+    # fall through to the Summer default below.
+    if season in _DROPPED_INTERN_SEASONS:
+        return None
     # Only the TITLE's year is trusted here. An adjacent "{season} {year}" token
     # in the description was already handled above; a bare year left in the prose
     # is usually the candidate's graduation date ("a related field graduating in
     # December 2026 or later"), and letting that win knocked Nuro's and Ramp's
     # title-level interns out of the live cycles and into the new-grad bucket.
-    # Recall-first: the only live intern cycles for the ~2027 class are Spring
-    # and Summer 2027 (2026 cycles were already excluded above by title), so a
+    # Recall-first: Summer 2027 is the only live intern cycle for the ~2027
+    # class (2026 cycles and spring/winter terms were excluded above), so a
     # missing year defaults to 2027 rather than dropping the role.
     year = _year_from(t)
     if year is None:

@@ -57,7 +57,6 @@ INCLUDE_KEYWORDS = [
     "networking engineer", "network engineer",
     "storage engineer",
     "database engineer",
-    "security engineer", "security engineering",
     "automation engineer",
     "reliability engineer",
     "production engineer",
@@ -96,6 +95,16 @@ EXCLUDE_KEYWORDS = [
     "financial analyst",
     "legal", "paralegal",
     "administrative",
+    # Cybersecurity roles - a separate discipline from backend SWE.
+    # "security" is the workhorse here: it covers "Security Engineer",
+    # "Product Security", "Software Engineer, Security" and the rest in one
+    # term. Whole-word matching keeps it away from "Securities" (as in
+    # Citadel Securities / Maven Securities), which is a different word.
+    "security", "cyber", "cybersecurity", "cyber security",
+    "infosec", "appsec", "netsec",
+    "malware", "pentest", "penetration testing", "penetration tester",
+    "red team", "blue team",
+    "threat", "vulnerability", "cryptanalysis",
     # Electrical / hardware roles
     "electrical engineer", "electrical engineering", "electrical",
     "hardware engineer", "hardware engineering", "hardware",

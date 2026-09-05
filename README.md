@@ -3,7 +3,6 @@
 Scrapes career pages of 250+ companies for backend SWE internships and new grad roles, targeting the **~May 2027 graduating class**. Filters out non-engineering positions and categorizes results into:
 
 Internships (while still enrolled):
-- **Spring 2027 Intern**
 - **Summer 2027 Intern**
 
 New grad / early career (starting on/after May 2027):
