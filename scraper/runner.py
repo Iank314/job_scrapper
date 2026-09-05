@@ -12,6 +12,7 @@ from scraper.icims import ICIMSScraper
 from scraper.generic import GenericScraper
 from scraper.radancy import RadancyScraper
 from scraper.microsoft import MicrosoftScraper
+from scraper.oracle import OracleScraper
 from scraper.workable import WorkableScraper
 from scraper.playwright_scraper import PlaywrightScraper, close_browser
 
@@ -25,6 +26,7 @@ SCRAPERS = {
     "generic": GenericScraper,
     "radancy": RadancyScraper,
     "microsoft": MicrosoftScraper,
+    "oracle": OracleScraper,
     "workable": WorkableScraper,
     "playwright": PlaywrightScraper,
 }

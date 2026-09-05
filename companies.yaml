@@ -58,8 +58,8 @@ companies:
   ats: playwright
   url: https://www.ibm.com/careers/search?field_keyword_05[0]=Software%20Engineering
 - name: Dell
-  ats: workday
-  url: https://dell.wd1.myworkdayjobs.com/en-US/External
+  ats: oracle
+  url: https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers
 - name: HP
   ats: workday
   url: https://hp.wd5.myworkdayjobs.com/en-US/ExternalCareerSite
@@ -267,8 +267,8 @@ companies:
   ats: greenhouse
   board_id: okta
 - name: Temporal
-  ats: greenhouse
-  board_id: temporaltechnologies
+  ats: ashby
+  board_id: temporal
 - name: PagerDuty
   ats: greenhouse
   board_id: pagerduty
@@ -339,9 +339,12 @@ companies:
 - name: Morgan Stanley
   ats: playwright
   url: https://morganstanley.tal.net/vx/lang-en-GB/mobile-0/brand-2/candidate/jobboard/vacancy/3/adv/
-- name: Bank of America
-  ats: playwright
-  url: https://campus.bankofamerica.com/careers/students_graduates.html
+# - name: Bank of America
+#   ats: playwright
+#   url: https://careers.bankofamerica.com/en-us/students/campus-experience
+#   # careers.bankofamerica.com never responds (curl: 0 bytes in 40s; headless
+#   # Chromium: timeout at 60s) and campus.bankofamerica.com just 302s to it.
+#   # Same situation as Charles Schwab / State Farm — check this one by hand.
 - name: Citigroup
   ats: playwright
   url:
@@ -373,8 +376,8 @@ companies:
   ats: greenhouse
   board_id: sofi
 - name: Marqeta
-  ats: greenhouse
-  board_id: marqeta
+  ats: playwright
+  url: https://www.marqeta.com/company/careers
 - name: Adyen
   ats: greenhouse
   board_id: adyen
@@ -713,8 +716,9 @@ companies:
   ats: workday
   url: https://3m.wd1.myworkdayjobs.com/en-US/Search
 - name: Honeywell
-  ats: playwright
-  url: https://careers.honeywell.com/us/en/search-results
+  ats: oracle
+  url: https://careers.honeywell.com/en/sites/Honeywell
+  api_host: https://ibqbjb.fa.ocs.oraclecloud.com
 - name: GE Aerospace
   ats: workday
   url: https://geaerospace.wd5.myworkdayjobs.com/en-US/GE_ExternalSite
@@ -764,8 +768,10 @@ companies:
   ats: greenhouse
   board_id: alarmcom
 - name: Alight
-  ats: workday
-  url: https://alight.wd5.myworkdayjobs.com/en-US/careers
+  ats: playwright
+  url:
+    - https://careers.alight.com/us/en/search-results?keywords=software%20engineer%20intern
+    - https://careers.alight.com/us/en/search-results?keywords=software%20engineer%20graduate
 - name: ALKU
   ats: greenhouse
   board_id: alku
@@ -1209,8 +1215,10 @@ companies:
   ats: greenhouse
   board_id: icapitalnetwork
 - name: IDEXX
-  ats: workday
-  url: https://idexx.wd1.myworkdayjobs.com/en-US/idexx
+  ats: playwright
+  url:
+    - https://careers.idexx.com/us/en/search-results?keywords=software%20engineer%20intern
+    - https://careers.idexx.com/us/en/search-results?keywords=software%20engineer%20graduate
 - name: Illumio
   ats: ashby
   board_id: illumio
@@ -1244,9 +1252,14 @@ companies:
 - name: IXL Learning
   ats: greenhouse
   board_id: ixllearning
-- name: Jahnel Group
-  ats: greenhouse
-  board_id: jahnelgroup
+# - name: Jahnel Group
+#   ats: playwright
+#   url: https://jahnelgroup.com/positions
+#   # Off Greenhouse. Their own /positions page renders every role as a card
+#   # whose only anchors are href="#" ("ABOUT" / "APPLY"), so the generic
+#   # extractor has nothing to latch onto — the known limitation about
+#   # listings without real job links. All 12 current roles are senior/lead
+#   # anyway, so a custom extractor would buy nothing.
 - name: Javelin Global Commodities
   ats: workable
   board_id: javelin-global-commodities

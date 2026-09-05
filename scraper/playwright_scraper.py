@@ -10,7 +10,13 @@ multi-second chromium startup per company. Companies are scraped sequentially
 because Playwright's sync API isn't thread-safe.
 """
 
+import os
 import re
+import signal
+import subprocess
+import sys
+import threading
+from contextlib import contextmanager
 from urllib.parse import urljoin, urlparse
 
 from scraper.base import BaseScraper
@@ -81,16 +87,120 @@ TRANSIENT_NAV_ERRORS = (
 NAV_RETRIES = 2          # total attempts on a transient net error
 NAV_RETRY_WAIT_MS = 1500
 
+# Hard ceiling on one URL. Nothing legitimate comes close (20s goto x2 retries +
+# 8s networkidle + settle + scrolling lands under 60s), so blowing this means a
+# playwright call is blocked, not slow — see _kill_driver.
+HARD_DEADLINE_S = 90
+TEARDOWN_DEADLINE_S = 20
+
+# A wedged navigation can take the whole driver down, not just the page. When
+# that happens every subsequent playwright call raises this instead of a normal
+# Playwright error, and the shared browser is unusable for the rest of the run.
+DEAD_DRIVER_MARKERS = (
+    "connection closed",
+    "target page, context or browser has been closed",
+    "browser has been closed",
+    "browser closed",
+    "target crashed",
+)
+
 _playwright = None
 _browser = None
+_poisoned = False  # set by the watchdog; forces a relaunch on next use
+
+
+def _driver_pid(playwright=None):
+    """PID of the node driver playwright talks to, or None.
+
+    Private API, and deliberately so: it is the only handle that makes a blocked
+    sync-API call interruptible, and there is no public equivalent. Every access
+    is defensive because the path is not a stable contract.
+    """
+    playwright = playwright if playwright is not None else _playwright
+    try:
+        return playwright._impl_obj._connection._transport._proc.pid
+    except Exception:
+        return None
+
+
+def _kill_driver(pid=None):
+    """Kill the driver process so blocked playwright calls raise instead of hang.
+
+    This is the escape hatch for a wedged browser. careers.honeywell.com wedged
+    chromium on a retried navigation and page.close() then sat there for ~172
+    seconds before the connection finally dropped — with no timeout parameter
+    anywhere in the sync API to bound it. Killing the process the call is
+    waiting on is what turns that hang into an exception we can handle.
+
+    `pid` is passed explicitly by callers that have already detached the module
+    globals, since _driver_pid() reads them.
+    """
+    global _poisoned
+    _poisoned = True
+    pid = pid if pid is not None else _driver_pid()
+    if not pid:
+        return
+    try:
+        if sys.platform == "win32":
+            # /T so chromium's children go too, rather than being orphaned.
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)],
+                           capture_output=True, timeout=15)
+        else:
+            os.kill(pid, signal.SIGKILL)
+    except Exception:
+        pass
+
+
+@contextmanager
+def _watchdog(seconds, what, pid=None):
+    """Kill the driver if the wrapped block hasn't finished in `seconds`.
+
+    Resolve the pid up front: _discard_browser() clears the globals before it
+    starts closing, so a watchdog that looked the pid up at fire time would have
+    nothing left to kill.
+    """
+    pid = pid if pid is not None else _driver_pid()
+
+    def fire():
+        print(f"  [!] playwright: {what} exceeded {seconds}s — killing the browser",
+              flush=True)
+        _kill_driver(pid)
+
+    timer = threading.Timer(seconds, fire)
+    timer.daemon = True
+    timer.start()
+    try:
+        yield
+    finally:
+        timer.cancel()
+
+
+def _driver_is_dead(exc):
+    return any(marker in str(exc).lower() for marker in DEAD_DRIVER_MARKERS)
 
 
 def _ensure_browser():
-    """Start playwright and chromium on first use. Returns the shared browser."""
-    global _playwright, _browser
-    if _browser is not None:
-        return _browser
+    """Start playwright and chromium on first use. Returns the shared browser.
 
+    The browser is shared across all playwright companies, which means one site
+    that kills chromium would otherwise take every company after it down with
+    it — careers.honeywell.com did exactly that: its HTTP/2 failure killed the
+    driver mid-navigation, and the run then hung inside page.close() with three
+    companies left to scrape and the notification flush never reached. So the
+    handle is health-checked here and transparently relaunched when it's dead.
+    """
+    global _playwright, _browser, _poisoned
+    if _browser is not None:
+        try:
+            healthy = not _poisoned and _browser.is_connected()
+        except Exception:
+            healthy = False
+        if healthy:
+            return _browser
+        print("  [.] playwright: browser died — relaunching", flush=True)
+        _discard_browser()
+
+    _poisoned = False
     from playwright.sync_api import sync_playwright  # imported lazily
 
     _playwright = sync_playwright().start()
@@ -101,21 +211,54 @@ def _ensure_browser():
     return _browser
 
 
+def _discard_browser():
+    """Drop the shared browser without waiting on a driver that may be gone.
+
+    close_browser() is the graceful path; this is the one taken when the driver
+    is already dead, where any protocol call would block forever rather than
+    raise.
+    """
+    global _playwright, _browser, _poisoned
+    browser, playwright, poisoned = _browser, _playwright, _poisoned
+    pid = _driver_pid()
+    _browser = _playwright = None
+
+    if poisoned:
+        # The driver was killed (or is wedged), so browser.close() is exactly the
+        # call that would block — skip it. playwright.stop() still has to run:
+        # it is what tears down the sync API's asyncio loop, and without it the
+        # next sync_playwright().start() refuses outright with "It looks like you
+        # are using Playwright Sync API inside the asyncio loop". Against a dead
+        # driver it returns immediately.
+        _kill_driver(pid)
+        if playwright is not None:
+            try:
+                playwright.stop()
+            except Exception:
+                pass
+        _poisoned = False
+        return
+
+    # A graceful teardown still has to be bounded: is_connected() reports True
+    # for a wedged driver just as it does for a healthy one.
+    with _watchdog(TEARDOWN_DEADLINE_S, "browser teardown", pid=pid):
+        if browser is not None:
+            try:
+                if browser.is_connected():
+                    browser.close()
+            except Exception:
+                pass
+        if playwright is not None:
+            try:
+                playwright.stop()
+            except Exception:
+                pass
+    _poisoned = False
+
+
 def close_browser():
     """Tear down the shared browser at the end of a scrape run."""
-    global _playwright, _browser
-    if _browser is not None:
-        try:
-            _browser.close()
-        except Exception:
-            pass
-        _browser = None
-    if _playwright is not None:
-        try:
-            _playwright.stop()
-        except Exception:
-            pass
-        _playwright = None
+    _discard_browser()
 
 
 class PlaywrightScraper(BaseScraper):
@@ -164,54 +307,77 @@ class PlaywrightScraper(BaseScraper):
         print(f"  [.] playwright/{name}: loading {url[:80]}", flush=True)
         started = time.monotonic()
 
-        context = browser.new_context(
-            user_agent=USER_AGENT,
-            viewport={"width": 1440, "height": 900},
-            locale="en-US",
-        )
+        context = page = None
+        # Every playwright call below is under the watchdog: a wedged driver
+        # blocks forever otherwise, and one wedged company used to take the rest
+        # of the run — and the notification flush at the end of it — with it.
+        with _watchdog(HARD_DEADLINE_S, f"{name} scrape"):
+            try:
+                context = browser.new_context(
+                    user_agent=USER_AGENT,
+                    viewport={"width": 1440, "height": 900},
+                    locale="en-US",
+                )
+                page, _ = _goto_with_retry(context, url)
+                try:
+                    page.wait_for_load_state("networkidle", timeout=NETWORKIDLE_TIMEOUT_MS)
+                except Exception:
+                    pass  # many sites keep long-poll connections open — proceed anyway
+                page.wait_for_timeout(SETTLE_WAIT_MS)
+                _auto_scroll(page)
+
+                site = company_cfg.get("site", "generic")
+                handler = SITE_HANDLERS.get(site, _generic_extract)
+                jobs = handler(page, company_cfg, url)
+                elapsed = time.monotonic() - started
+                if elapsed > PER_COMPANY_BUDGET_S:
+                    print(f"  [.] playwright/{name}: slow ({elapsed:.0f}s)", flush=True)
+                return jobs
+            except Exception as e:
+                elapsed = time.monotonic() - started
+                msg = str(e).splitlines()[0][:120]
+                print(f"  [!] playwright/{name}: {msg} (after {elapsed:.0f}s)", flush=True)
+                return []
+            finally:
+                _close_quietly(page, context)
+
+
+def _close_quietly(*closeables):
+    """Close pages/contexts, tolerating a driver that is already gone."""
+    for closeable in closeables:
+        if closeable is None:
+            continue
+        try:
+            closeable.close()
+        except Exception:
+            pass
+
+
+def _goto_with_retry(context, url):
+    """Navigate to url on a fresh page, retrying transient net errors.
+
+    Returns (page, response) — the caller works with the page this hands back,
+    because **each attempt gets its own page**. Reusing the page across a retry
+    is what took the whole run down: a second goto into a renderer that had just
+    failed with ERR_HTTP2_PROTOCOL_ERROR left chromium wedged, and the eventual
+    page.close() blocked for ~172s before the driver connection dropped. One
+    attempt per page fails in 0.1s and closes instantly. (Measured on
+    careers.honeywell.com, which reproduces it every time.)
+    """
+    page = None
+    for attempt in range(NAV_RETRIES):
+        _close_quietly(page)
         page = context.new_page()
         try:
-            _goto_with_retry(page, url)
-            try:
-                page.wait_for_load_state("networkidle", timeout=NETWORKIDLE_TIMEOUT_MS)
-            except Exception:
-                pass  # many sites keep long-poll connections open — proceed anyway
-            page.wait_for_timeout(SETTLE_WAIT_MS)
-            _auto_scroll(page)
-
-            site = company_cfg.get("site", "generic")
-            handler = SITE_HANDLERS.get(site, _generic_extract)
-            jobs = handler(page, company_cfg, url)
-            elapsed = time.monotonic() - started
-            if elapsed > PER_COMPANY_BUDGET_S:
-                print(f"  [.] playwright/{name}: slow ({elapsed:.0f}s)", flush=True)
-            return jobs
-        except Exception as e:
-            elapsed = time.monotonic() - started
-            msg = str(e).splitlines()[0][:120]
-            print(f"  [!] playwright/{name}: {msg} (after {elapsed:.0f}s)", flush=True)
-            return []
-        finally:
-            try:
-                page.close()
-            except Exception:
-                pass
-            try:
-                context.close()
-            except Exception:
-                pass
-
-
-def _goto_with_retry(page, url):
-    """Navigate to url, retrying only transient connection-level net errors."""
-    for attempt in range(NAV_RETRIES):
-        try:
-            return page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+            response = page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+            return page, response
         except Exception as e:
             transient = any(code in str(e) for code in TRANSIENT_NAV_ERRORS)
             if not transient or attempt == NAV_RETRIES - 1:
+                # The failed page is left open; the caller closes the whole
+                # context in its finally, which takes every page with it.
                 raise
-            page.wait_for_timeout(NAV_RETRY_WAIT_MS)
+    return page, None
 
 
 def _auto_scroll(page):

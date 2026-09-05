@@ -22,6 +22,8 @@ import html
 import re
 import time
 
+from urllib3.util.retry import Retry
+
 from scraper.base import BaseScraper
 from filters import matches_backend_swe, is_us_location
 
@@ -43,9 +45,26 @@ MAX_PAGES_PER_QUERY = 15
 MAX_DETAIL_FETCHES = 40
 TAG_RE = re.compile(r"<[^>]+>")
 
+# This portal rate-limits by IP, and one company here is dozens of paged calls
+# plus a detail fetch per candidate — enough that the shared policy's three
+# ~1s retries get burned through and the whole company is lost to a 429 on the
+# very first page. Microsoft therefore backs off on a scale that outlasts the
+# limiter (0/2/4/8/16/32s) instead of the default sub-second one. It costs
+# nothing when the API is healthy, and Microsoft scrapes inside the concurrent
+# pool so a slow backoff here doesn't hold up any other company.
+MS_RETRY_POLICY = Retry(
+    total=6,
+    backoff_factor=2.0,
+    status_forcelist=(429, 500, 502, 503, 504),
+    allowed_methods=None,
+    raise_on_status=False,
+    respect_retry_after_header=True,
+)
+
 
 class MicrosoftScraper(BaseScraper):
     ats_name = "microsoft"
+    retry_policy = MS_RETRY_POLICY
 
     def _fetch_jobs(self, company_cfg):
         queries = company_cfg.get("queries") or DEFAULT_QUERIES
@@ -57,6 +76,7 @@ class MicrosoftScraper(BaseScraper):
         for query in queries:
             for pos in self._search(query, location):
                 by_id[pos["id"]] = pos
+            self.throttle()
 
         results = [self._to_job(p) for p in by_id.values()]
         self._attach_descriptions(results)

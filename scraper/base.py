@@ -55,12 +55,13 @@ RETRY_POLICY = Retry(
 class BaseScraper:
     ats_name = "base"
     use_browser_headers = False  # Subclasses set True for HTML scraping
+    retry_policy = RETRY_POLICY  # Subclasses override when a host needs its own
 
     def __init__(self):
         self.session = requests.Session()
         headers = BROWSER_HEADERS if self.use_browser_headers else API_HEADERS
         self.session.headers.update(headers)
-        adapter = HTTPAdapter(max_retries=RETRY_POLICY)
+        adapter = HTTPAdapter(max_retries=self.retry_policy)
         self.session.mount("https://", adapter)
         self.session.mount("http://", adapter)
 
