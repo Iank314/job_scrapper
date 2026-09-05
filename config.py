@@ -46,7 +46,7 @@ INCLUDE_KEYWORDS = [
     "backend", "back-end", "back end",
     "platform", "infrastructure",
     "distributed systems", "systems engineer",
-    "embedded", "firmware", "sre",
+    "sre",
     "devops", "dev ops",
     "cloud engineer", "cloud infrastructure",
     "data engineer", "data engineering", "data infrastructure",

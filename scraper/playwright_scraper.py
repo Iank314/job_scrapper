@@ -35,8 +35,7 @@ USER_AGENT = (
 
 # Links whose text matches this pattern are considered candidate job postings.
 TARGET_CYCLE_PATTERN = (
-    r'\b(?:fall|autumn)\s*2026\b|'
-    r'\b(?:spring|winter|summer)\s*2027\b|'
+    r'\b(?:spring|winter|summer|fall|autumn)\s*2027\b|'
     r'\bclass\s*of\s*2027\b|'
     r'\b2027\b.{0,50}\b(?:new\s*grad|university\s*grad|graduate)\b|'
     r'\b(?:new\s*grad|university\s*grad|graduate)\b.{0,50}\b2027\b'

@@ -11,7 +11,6 @@ New grad / early career (starting on/after May 2027):
 - **Summer 2027 New Grad**
 - **Fall 2027 New Grad**
 - **Spring 2027 New Grad**
-- **Fall 2026 New Grad**
 
 Results are displayed in a local web UI with search, filtering, and sorting.
 

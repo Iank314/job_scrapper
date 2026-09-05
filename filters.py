@@ -13,13 +13,13 @@ def _fold(text):
 # graduation (Spring/Summer 2027); new-grad / early-career roles start on or
 # after it (Summer/Fall 2027, plus the season-less "2027 New Grad" bucket for
 # campus / class-of-2027 / "graduating Dec 2026 - June 2027" postings).
-# Fall 2026 Intern was dropped — that recruiting season is over.
+# The whole Fall 2026 cycle was dropped (intern and new grad) — that
+# recruiting season is over, so those postings are noise now.
 ALLOWED_CATEGORIES = {
     # Internships — still enrolled.
     "Spring 2027 Intern",
     "Summer 2027 Intern",
     # New grad / early career — full-time, starts on/after May 2027 grad.
-    "Fall 2026 New Grad",
     "Spring 2027 New Grad",
     "Summer 2027 New Grad",
     "Fall 2027 New Grad",
@@ -158,12 +158,30 @@ def _kw_regex(keywords):
 _INCLUDE_RE = _kw_regex(INCLUDE_KEYWORDS)
 _EXCLUDE_RE = _kw_regex(EXCLUDE_KEYWORDS)
 
+# Firmware and embedded are a different discipline from backend SWE, and they
+# need their own rejection rather than just being absent from INCLUDE_KEYWORDS:
+# "Embedded Software Engineer Intern" and "Embedded Systems Engineer" still
+# match "software engineer" and "systems engineer", so dropping them from the
+# include list alone would not have excluded them.
+#
+# "Embedded finance / payments / banking" is a fintech product category, not a
+# hardware role — Column, Marqeta, Unit and Adyen all post backend engineering
+# roles that use the phrase — so that sense is exempted.
+_EMBEDDED_FINTECH = r"financ\w*|payments?|banking|bank|lending|insurance|fintech|wallet"
+FIRMWARE_EMBEDDED_RE = re.compile(
+    r"\bfirmware\b"
+    r"|\bembedded\b(?!\s+(?:" + _EMBEDDED_FINTECH + r"))",
+    re.IGNORECASE,
+)
+
 
 def matches_backend_swe(title):
     """Return True if the job title looks like a backend SWE role."""
     if is_senior_role(title):
         return False
     if _EXCLUDE_RE.search(title):
+        return False
+    if FIRMWARE_EMBEDDED_RE.search(title):
         return False
     return bool(_INCLUDE_RE.search(title))
 
@@ -421,14 +439,12 @@ _INTERN_CYCLES = {
 _INTERN_ORDER = ["Spring 2027 Intern", "Summer 2027 Intern"]
 
 _NEWGRAD_CYCLES = {
-    ("fall", 2026): "Fall 2026 New Grad",
     ("spring", 2027): "Spring 2027 New Grad",
     ("summer", 2027): "Summer 2027 New Grad",
     ("fall", 2027): "Fall 2027 New Grad",
 }
 _NEWGRAD_ORDER = [
-    "Fall 2026 New Grad", "Spring 2027 New Grad",
-    "Summer 2027 New Grad", "Fall 2027 New Grad",
+    "Spring 2027 New Grad", "Summer 2027 New Grad", "Fall 2027 New Grad",
 ]
 
 # The season-less "2027 New Grad" bucket and the specific 2027 new-grad cycles.
@@ -452,9 +468,15 @@ def cycle_compatible(title_category, stored_category):
 
 
 def _past_cycle_in_title(t):
-    """Title explicitly names a past 2026 cycle. Fall 2026 stays valid for new
-    grad, so only spring/winter/summer 2026 count as past here."""
-    return bool(re.search(r'\b(spring|winter|summer)\s*2026\b', t))
+    """Title explicitly names a past 2026 cycle.
+
+    Every 2026 season now counts, Fall included — that cycle finished
+    recruiting. This has to stay in step with _NEWGRAD_CYCLES: because
+    _newgrad_category() is recall-first and falls back to the 2027 bucket, a
+    season that is neither a valid cycle nor a recognised *past* one would be
+    silently relabelled as 2027 rather than dropped.
+    """
+    return bool(re.search(r'\b(spring|winter|summer|fall|autumn)\s*2026\b', t))
 
 
 def _soonest(valid, order):
@@ -514,12 +536,11 @@ def _newgrad_category(t, d, combined):
         return _NEWGRAD_CYCLES[(season, year)]
     # A season-less title that still names a year names a *graduating class*:
     # "Software Engineer - New Grad 2026" (Cerebras) is hiring the 2026 class,
-    # so it belongs in the Fall 2026 bucket, not the 2027 one it used to land
-    # in. Only the title's year is trusted — description prose is full of
-    # unrelated years. Mislabeling these was what let last cycle's postings
-    # dilute the bucket that actually matches the target class.
+    # which has finished recruiting — drop it. Only the title's year is
+    # trusted here; description prose is full of unrelated years. Letting
+    # these through is what used to dilute the target class's bucket.
     if _year_from(t) == 2026:
-        return "Fall 2026 New Grad"
+        return None
     # Recall-first: reaching here means is_new_grad matched (a genuine new-grad /
     # early-career / campus signal) and the title named no past 2026 cycle, so
     # this is a role for the target class that simply didn't spell out a cycle.

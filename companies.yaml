@@ -1266,3 +1266,409 @@ companies:
 - name: Joby Aviation
   ats: icims
   url: https://careers-jobyaviation.icims.com/jobs/search?ss=1
+
+# ---------------------------------------------------------------------------
+# $100k+ new-grad SWE additions.
+#
+# Every board below was verified live before being added: the slug was probed
+# against the ATS API, and then the board's declared name (or, where the API
+# exposes none, its actual job titles and locations) was checked to confirm it
+# belongs to this company and not a same-named one. 13 candidates were dropped
+# at that second step - greenhouse/axiom is a legal-services firm, not Axiom
+# Space; greenhouse/lattice is the HR software company, not Lattice
+# Semiconductor; greenhouse/linkedin is a test board.
+#
+# Salary is not scraped anywhere in this project - the $100k+ bar reflects
+# widely reported US new-grad SWE base pay, so treat it as a selection
+# heuristic for which boards are worth watching, not as verified data.
+# ---------------------------------------------------------------------------
+- name: 3Red Partners
+  ats: greenhouse
+  board_id: 3redpartners
+- name: Abridge
+  ats: ashby
+  board_id: abridge
+- name: Airbyte
+  ats: ashby
+  board_id: airbyte
+- name: Airwallex
+  ats: ashby
+  board_id: airwallex
+- name: Alchemy
+  ats: ashby
+  board_id: alchemy
+- name: Amplitude
+  ats: greenhouse
+  board_id: amplitude
+- name: Anchorage Digital
+  ats: lever
+  board_id: anchorage
+- name: Anyscale
+  ats: ashby
+  board_id: anyscale
+- name: AQR Capital Management
+  ats: greenhouse
+  board_id: aqr
+- name: Arista Networks
+  ats: smartrecruiters
+  board_id: aristanetworks
+- name: Astera Labs
+  ats: greenhouse
+  board_id: asteralabs
+- name: Baseten
+  ats: ashby
+  board_id: baseten
+- name: Betterment
+  ats: greenhouse
+  board_id: betterment
+- name: BILL
+  ats: greenhouse
+  board_id: billcom
+- name: Braze
+  ats: greenhouse
+  board_id: braze
+- name: Bright Machines
+  ats: lever
+  board_id: brightmachines
+- name: Carbon Robotics
+  ats: greenhouse
+  board_id: carbonrobotics
+- name: Carta
+  ats: greenhouse
+  board_id: carta
+- name: Chainguard
+  ats: greenhouse
+  board_id: chainguard
+- name: Chaos Industries
+  ats: greenhouse
+  board_id: chaosindustries
+- name: Character.AI
+  ats: ashby
+  board_id: character
+- name: Chroma
+  ats: ashby
+  board_id: trychroma
+- name: Clerk
+  ats: ashby
+  board_id: clerk
+- name: Collaborative Robotics
+  ats: ashby
+  board_id: cobot
+- name: Column
+  ats: ashby
+  board_id: column
+- name: Consensys
+  ats: greenhouse
+  board_id: consensys
+- name: CoreWeave
+  ats: greenhouse
+  board_id: coreweave
+- name: Cribl
+  ats: greenhouse
+  board_id: cribl
+- name: Decagon
+  ats: ashby
+  board_id: decagon
+- name: Devoted Health
+  ats: smartrecruiters
+  board_id: devotedhealth
+- name: Dexterity
+  ats: lever
+  board_id: dexterity
+- name: Drata
+  ats: ashby
+  board_id: drata
+- name: DV Trading
+  ats: greenhouse
+  board_id: dvtrading
+- name: ElevenLabs
+  ats: ashby
+  board_id: elevenlabs
+- name: ExodusPoint Capital
+  ats: greenhouse
+  board_id: exoduspoint
+- name: Faire
+  ats: greenhouse
+  board_id: faire
+- name: FanDuel
+  ats: greenhouse
+  board_id: fanduel
+- name: Figure AI
+  ats: greenhouse
+  board_id: figureai
+- name: Fireworks AI
+  ats: ashby
+  board_id: fireworks
+- name: Flow Traders
+  ats: greenhouse
+  board_id: flowtraders
+- name: Gelber Group
+  ats: greenhouse
+  board_id: gelbergroup
+- name: Gemini
+  ats: greenhouse
+  board_id: gemini
+- name: Ginkgo Bioworks
+  ats: greenhouse
+  board_id: ginkgobioworks
+- name: Harvey
+  ats: ashby
+  board_id: harvey
+- name: Hex
+  ats: ashby
+  board_id: hex
+- name: Hinge Health
+  ats: ashby
+  board_id: hinge-health
+- name: Honeycomb
+  ats: greenhouse
+  board_id: honeycomb
+- name: Huntress
+  ats: greenhouse
+  board_id: huntress
+- name: Included Health
+  ats: lever
+  board_id: includedhealth
+- name: Intercom
+  ats: greenhouse
+  board_id: intercom
+- name: IonQ
+  ats: greenhouse
+  board_id: ionq
+- name: JetBrains
+  ats: greenhouse
+  board_id: jetbrains
+- name: Kalshi
+  ats: greenhouse
+  board_id: kalshi
+- name: Klaviyo
+  ats: greenhouse
+  board_id: klaviyo
+- name: Kodiak Robotics
+  ats: greenhouse
+  board_id: kodiak
+- name: Komodo Health
+  ats: greenhouse
+  board_id: komodohealth
+- name: Lambda
+  ats: ashby
+  board_id: lambda
+- name: Lightmatter
+  ats: greenhouse
+  board_id: lightmatter
+- name: Luma AI
+  ats: ashby
+  board_id: lumaai
+- name: Material Security
+  ats: ashby
+  board_id: materialsecurity
+- name: Mercor
+  ats: ashby
+  board_id: mercor
+- name: Mercury
+  ats: greenhouse
+  board_id: mercury
+- name: Middesk
+  ats: ashby
+  board_id: middesk
+- name: Miro
+  ats: ashby
+  board_id: miro
+- name: Modern Treasury
+  ats: ashby
+  board_id: moderntreasury
+- name: Motional
+  ats: greenhouse
+  board_id: motional
+- name: Navan
+  ats: greenhouse
+  board_id: tripactions
+- name: Netlify
+  ats: greenhouse
+  board_id: netlify
+- name: Netskope
+  ats: greenhouse
+  board_id: netskope
+- name: Nextdoor
+  ats: greenhouse
+  board_id: nextdoor
+- name: Nimble Robotics
+  ats: greenhouse
+  board_id: nimblerobotics
+- name: Nubank
+  ats: ashby
+  board_id: nubank
+- name: OpenEvidence
+  ats: ashby
+  board_id: openevidence
+- name: Path Robotics
+  ats: greenhouse
+  board_id: pathrobotics
+- name: PDT Partners
+  ats: greenhouse
+  board_id: pdtpartners
+- name: Persona
+  ats: ashby
+  board_id: persona
+- name: Physical Intelligence
+  ats: ashby
+  board_id: physicalintelligence
+- name: Pinecone
+  ats: ashby
+  board_id: pinecone
+- name: Planet Labs
+  ats: greenhouse
+  board_id: planetlabs
+- name: Polymarket
+  ats: ashby
+  board_id: polymarket
+- name: Poolside
+  ats: ashby
+  board_id: poolside
+- name: Prefect
+  ats: ashby
+  board_id: prefect
+- name: PsiQuantum
+  ats: greenhouse
+  board_id: psiquantum
+- name: Qube Research and Technologies
+  ats: greenhouse
+  board_id: quberesearchandtechnologies
+- name: Railway
+  ats: ashby
+  board_id: railway
+- name: Recursion
+  ats: greenhouse
+  board_id: recursionpharmaceuticals
+- name: Reflection AI
+  ats: ashby
+  board_id: reflectionai
+- name: Relativity Space
+  ats: greenhouse
+  board_id: relativity
+- name: Rigetti Computing
+  ats: lever
+  board_id: rigetti
+- name: Ripple
+  ats: greenhouse
+  board_id: ripple
+- name: Rocket Lab
+  ats: greenhouse
+  board_id: rocketlab
+- name: Rockstar Games
+  ats: greenhouse
+  board_id: rockstargames
+- name: Roku
+  ats: greenhouse
+  board_id: roku
+- name: RunPod
+  ats: ashby
+  board_id: runpod
+- name: SambaNova Systems
+  ats: greenhouse
+  board_id: sambanovasystems
+- name: Samsara
+  ats: greenhouse
+  board_id: samsara
+- name: Sardine
+  ats: ashby
+  board_id: sardine
+- name: Saronic
+  ats: ashby
+  board_id: saronic
+- name: Schonfeld
+  ats: greenhouse
+  board_id: schonfeld
+- name: Scopely
+  ats: greenhouse
+  board_id: scopely
+- name: SeatGeek
+  ats: greenhouse
+  board_id: seatgeek
+- name: Semgrep
+  ats: ashby
+  board_id: semgrep
+- name: ServiceTitan
+  ats: smartrecruiters
+  board_id: servicetitan
+- name: Sierra
+  ats: ashby
+  board_id: sierra
+- name: Sigma Computing
+  ats: greenhouse
+  board_id: sigmacomputing
+- name: Simplex Trading
+  ats: greenhouse
+  board_id: simplextrading
+- name: Skydio
+  ats: ashby
+  board_id: skydio
+- name: Smartsheet
+  ats: greenhouse
+  board_id: smartsheet
+- name: Squarepoint Capital
+  ats: greenhouse
+  board_id: squarepointcapital
+- name: Suno
+  ats: ashby
+  board_id: suno
+- name: Synthesia
+  ats: ashby
+  board_id: synthesia
+- name: Sysdig
+  ats: lever
+  board_id: sysdig
+- name: Take-Two Interactive
+  ats: greenhouse
+  board_id: taketwo
+- name: Tanium
+  ats: greenhouse
+  board_id: tanium
+- name: Tenstorrent
+  ats: greenhouse
+  board_id: tenstorrent
+- name: Thinking Machines Lab
+  ats: ashby
+  board_id: thinkingmachines
+- name: Together AI
+  ats: greenhouse
+  board_id: togetherai
+- name: Torc Robotics
+  ats: greenhouse
+  board_id: torcrobotics
+- name: Valkyrie Trading
+  ats: lever
+  board_id: valkyrietrading
+- name: Vannevar Labs
+  ats: greenhouse
+  board_id: vannevarlabs
+- name: Vanta
+  ats: ashby
+  board_id: vanta
+- name: Varda Space Industries
+  ats: greenhouse
+  board_id: vardaspace
+- name: Vatic Labs
+  ats: greenhouse
+  board_id: vaticlabs
+- name: Wayve
+  ats: greenhouse
+  board_id: wayve
+- name: Wealthfront
+  ats: lever
+  board_id: wealthfront
+- name: Weaviate
+  ats: ashby
+  board_id: weaviate
+- name: WorkOS
+  ats: ashby
+  board_id: workos
+- name: Zapier
+  ats: ashby
+  board_id: zapier
+- name: Zipline
+  ats: greenhouse
+  board_id: flyzipline
+- name: ZoomInfo
+  ats: greenhouse
+  board_id: zoominfo

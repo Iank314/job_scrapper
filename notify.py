@@ -12,8 +12,6 @@ MAX_EMBEDS_PER_MSG = 10
 
 
 def _category_color(cat):
-    if "Fall 2026" in cat:
-        return 0xF0A050
     if "Summer 2027" in cat and "New Grad" not in cat:
         return 0x50A0F0
     if "Spring 2027" in cat and "New Grad" not in cat:

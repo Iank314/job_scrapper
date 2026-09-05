@@ -31,7 +31,6 @@
                 <option value="Summer 2027 New Grad">Summer 2027 New Grad</option>
                 <option value="Fall 2027 New Grad">Fall 2027 New Grad</option>
                 <option value="Spring 2027 New Grad">Spring 2027 New Grad</option>
-                <option value="Fall 2026 New Grad">Fall 2026 New Grad</option>
             </select>
             <label>
                 <input type="checkbox" id="activeOnly" checked> Active only
@@ -89,7 +88,6 @@
 
         function categoryClass(cat) {
             if (!cat) return "";
-            if (cat.includes("Fall 2026")) return "fall-2026";
             if (cat.includes("Spring 2027")) return "spring-2027";
             if (cat.includes("Summer 2027") && cat.includes("New Grad")) return "new-grad";
             if (cat.includes("Summer 2027")) return "summer-2027";

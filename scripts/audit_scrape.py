@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import MAX_WORKERS  # noqa: E402
 from filters import (  # noqa: E402
     matches_backend_swe, categorize, is_us_location, requires_phd,
-    is_senior_role, _INCLUDE_RE, _EXCLUDE_RE,
+    is_senior_role, _INCLUDE_RE, _EXCLUDE_RE, FIRMWARE_EMBEDDED_RE,
 )
 from scraper.runner import SCRAPERS, load_companies  # noqa: E402
 
@@ -44,7 +44,7 @@ EARLY_CAREER_HINT = re.compile(
 # Buckets that matter most to a May-2027 graduate looking for full-time work.
 NEWGRAD_CATEGORIES = {
     "2027 New Grad", "Summer 2027 New Grad",
-    "Fall 2027 New Grad", "Spring 2027 New Grad", "Fall 2026 New Grad",
+    "Fall 2027 New Grad", "Spring 2027 New Grad",
 }
 
 
@@ -55,6 +55,12 @@ def _drop_reason(title, location, description):
         return "seniority", None
     if _EXCLUDE_RE.search(title):
         return "exclude-keyword", None
+    # Its own gate rather than part of exclude-keyword: firmware/embedded needs
+    # to out-rank the include keywords ("Embedded Software Engineer" matches
+    # "software engineer"), and keeping it separate keeps the drop breakdown
+    # readable.
+    if FIRMWARE_EMBEDDED_RE.search(title):
+        return "firmware-embedded", None
     if not _INCLUDE_RE.search(title):
         return "no-swe-keyword", None
     if not is_us_location(location):

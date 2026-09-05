@@ -5,12 +5,11 @@ from datetime import datetime
 from config import DB_PATH
 from filters import ALLOWED_CATEGORIES, categorize, cycle_compatible, is_us_location
 
-# Title-only guard for stale rows. Excludes any season tied to an out-of-range
-# year (2010-2025, 2028+) and the past spring/winter/summer 2026 cycles. Note
-# Fall 2026 (new grad) and all of 2027 stay valid and are intentionally absent.
+# Title-only guard for stale rows. Excludes any season tied to a year outside
+# the target class: 2010-2026 and 2028+. All of 2026 is now out (the Fall 2026
+# cycle finished recruiting), leaving 2027 as the only in-range year.
 NON_TARGET_TITLE_CYCLE_RE = re.compile(
-    r'\b(?:fall|autumn|spring|winter|summer)\s*20(?:1\d|2[0-5]|2[89]|3\d)\b|'
-    r'\b(?:spring|winter|summer)\s*2026\b',
+    r'\b(?:fall|autumn|spring|winter|summer)\s*20(?:1\d|2[0-6]|2[89]|3\d)\b',
     re.IGNORECASE,
 )
 
