@@ -1672,3 +1672,512 @@ companies:
 - name: ZoomInfo
   ats: greenhouse
   board_id: zoominfo
+
+# ---------------------------------------------------------------------------
+# Batch 2 additions: data infra, dev tools, AI, fintech, health, climate,
+# space/defense, robotics and enterprise SaaS.
+#
+# Verified the same way as batch 1 - probe the board, then confirm the board's
+# declared name (or its actual job titles and locations) really is this
+# company. 17 candidates were dropped at that second step. Note two got past
+# the declared-name check and had to be caught by reading titles:
+# greenhouse/palmetto is 'Palmetto Animal Hospital' and greenhouse/wise is an
+# insurance agency - a substring name match is not proof.
+# ---------------------------------------------------------------------------
+- name: Airship
+  ats: greenhouse
+  board_id: airship
+- name: Ambi Robotics
+  ats: lever
+  board_id: ambirobotics
+- name: Antora Energy
+  ats: greenhouse
+  board_id: antora
+- name: Arize AI
+  ats: greenhouse
+  board_id: arizeai
+- name: Asimov
+  ats: ashby
+  board_id: asimov
+- name: Assembly AI
+  ats: greenhouse
+  board_id: assemblyai
+- name: Astronomer
+  ats: ashby
+  board_id: astronomer
+- name: Attentive
+  ats: greenhouse
+  board_id: attentive
+- name: Aurora Solar
+  ats: ashby
+  board_id: aurorasolar
+- name: Bandwidth
+  ats: greenhouse
+  board_id: bandwidth
+- name: Bitgo
+  ats: greenhouse
+  board_id: bitgo
+- name: Blockchain.com
+  ats: greenhouse
+  board_id: blockchain
+- name: Bot Auto
+  ats: greenhouse
+  board_id: botauto
+- name: Braintrust
+  ats: ashby
+  board_id: braintrust
+- name: Calm
+  ats: greenhouse
+  board_id: calm
+- name: Cameo
+  ats: greenhouse
+  board_id: cameo
+- name: Cartesia
+  ats: ashby
+  board_id: cartesia
+- name: Celonis
+  ats: greenhouse
+  board_id: celonis
+- name: ClickHouse
+  ats: ashby
+  board_id: clickhouse
+- name: ClickUp
+  ats: ashby
+  board_id: clickup
+- name: Clover Health
+  ats: greenhouse
+  board_id: cloverhealth
+- name: Cobalt Robotics
+  ats: lever
+  board_id: cobaltrobotics
+- name: Coder
+  ats: ashby
+  board_id: coder
+- name: Cognition
+  ats: ashby
+  board_id: cognition
+- name: Cohere Health
+  ats: greenhouse
+  board_id: coherehealth
+- name: Cresta
+  ats: greenhouse
+  board_id: cresta
+- name: Customer.io
+  ats: greenhouse
+  board_id: customerio
+- name: Dave
+  ats: ashby
+  board_id: dave
+- name: Deepgram
+  ats: ashby
+  board_id: deepgram
+- name: Descope
+  ats: greenhouse
+  board_id: descope
+- name: Descript
+  ats: greenhouse
+  board_id: descript
+- name: Dialpad
+  ats: greenhouse
+  board_id: dialpad
+- name: Diligent Robotics
+  ats: greenhouse
+  board_id: diligentrobotics
+- name: Doppler
+  ats: ashby
+  board_id: doppler
+- name: Doximity
+  ats: greenhouse
+  board_id: doximity
+- name: Dremio
+  ats: greenhouse
+  board_id: dremio
+- name: Electric Hydrogen
+  ats: greenhouse
+  board_id: eh2
+- name: Elicit
+  ats: ashby
+  board_id: elicit
+- name: Expensify
+  ats: ashby
+  board_id: expensify
+- name: Fervo Energy
+  ats: greenhouse
+  board_id: fervoenergy
+- name: Five9
+  ats: greenhouse
+  board_id: five9
+- name: Fivetran
+  ats: greenhouse
+  board_id: fivetran
+- name: Form Energy
+  ats: ashby
+  board_id: formenergy
+- name: Formic
+  ats: greenhouse
+  board_id: formic
+- name: Freshworks
+  ats: smartrecruiters
+  board_id: freshworks
+- name: Gamma
+  ats: ashby
+  board_id: gamma
+- name: Generate Biomedicines
+  ats: greenhouse
+  board_id: generatebiomedicines
+- name: GOAT Group
+  ats: greenhouse
+  board_id: goatgroup
+- name: Gopuff
+  ats: lever
+  board_id: gopuff
+- name: Govini
+  ats: smartrecruiters
+  board_id: govini
+- name: Grow Therapy
+  ats: ashby
+  board_id: grow-therapy
+- name: Headway
+  ats: ashby
+  board_id: headway
+- name: Helion Energy
+  ats: ashby
+  board_id: helion
+- name: Highnote
+  ats: greenhouse
+  board_id: highnote
+- name: Hightouch
+  ats: greenhouse
+  board_id: hightouch
+- name: Hims and Hers
+  ats: ashby
+  board_id: hims-and-hers
+- name: Hopper
+  ats: ashby
+  board_id: hopper
+- name: Hume AI
+  ats: greenhouse
+  board_id: humeai
+- name: Hyannis Port Research
+  ats: greenhouse
+  board_id: hyannisportresearch
+- name: IEX
+  ats: greenhouse
+  board_id: iex
+- name: Imbue
+  ats: greenhouse
+  board_id: imbue
+- name: Imply
+  ats: greenhouse
+  board_id: imply
+- name: Infisical
+  ats: ashby
+  board_id: infisical
+- name: InfluxData
+  ats: ashby
+  board_id: influxdata
+- name: Inngest
+  ats: ashby
+  board_id: inngest
+- name: Insitro
+  ats: ashby
+  board_id: insitro
+- name: Isomorphic Labs
+  ats: greenhouse
+  board_id: isomorphiclabs
+- name: Iterable
+  ats: greenhouse
+  board_id: iterable
+- name: Justworks
+  ats: greenhouse
+  board_id: justworks
+- name: LangChain
+  ats: ashby
+  board_id: langchain
+- name: Life360
+  ats: greenhouse
+  board_id: life360
+- name: Lithic
+  ats: greenhouse
+  board_id: lithic
+- name: LlamaIndex
+  ats: ashby
+  board_id: llamaindex
+- name: Mach Industries
+  ats: greenhouse
+  board_id: machindustries
+- name: Magic Eden
+  ats: ashby
+  board_id: magiceden
+- name: Materialize
+  ats: ashby
+  board_id: materialize
+- name: MEMX
+  ats: greenhouse
+  board_id: memx
+- name: Mercari
+  ats: greenhouse
+  board_id: mercari
+- name: Metabase
+  ats: lever
+  board_id: metabase
+- name: Monte Carlo
+  ats: ashby
+  board_id: montecarlodata
+- name: MotherDuck
+  ats: ashby
+  board_id: motherduck
+- name: Neo4j
+  ats: greenhouse
+  board_id: neo4j
+- name: Neros Technologies
+  ats: greenhouse
+  board_id: nerostechnologies
+- name: Norm AI
+  ats: ashby
+  board_id: norm-ai
+- name: Observe.AI
+  ats: greenhouse
+  board_id: observeai
+- name: Oklo
+  ats: greenhouse
+  board_id: oklo
+- name: OneTrust
+  ats: greenhouse
+  board_id: onetrust
+- name: Ontra
+  ats: ashby
+  board_id: ontra
+- name: OpenSea
+  ats: ashby
+  board_id: opensea
+- name: Oura
+  ats: greenhouse
+  board_id: oura
+- name: Patreon
+  ats: ashby
+  board_id: patreon
+- name: Payoneer
+  ats: greenhouse
+  board_id: payoneer
+- name: Peloton
+  ats: greenhouse
+  board_id: peloton
+- name: Pipedrive
+  ats: lever
+  board_id: pipedrive
+- name: Poshmark
+  ats: ashby
+  board_id: poshmark
+- name: Public
+  ats: greenhouse
+  board_id: public
+- name: Redis
+  ats: ashby
+  board_id: redis
+- name: Redwood Materials
+  ats: greenhouse
+  board_id: redwoodmaterials
+- name: Rime
+  ats: ashby
+  board_id: rime
+- name: Ro
+  ats: lever
+  board_id: ro
+- name: Rogo
+  ats: ashby
+  board_id: rogo
+- name: Sanity
+  ats: ashby
+  board_id: sanity
+- name: Scout AI
+  ats: greenhouse
+  board_id: scoutai
+- name: Second Front Systems
+  ats: ashby
+  board_id: second-front-systems
+- name: SingleStore
+  ats: greenhouse
+  board_id: singlestore
+- name: Slingshot Aerospace
+  ats: greenhouse
+  board_id: slingshotaerospace
+- name: Speakeasy
+  ats: ashby
+  board_id: speakeasy
+- name: Speechmatics
+  ats: greenhouse
+  board_id: speechmatics
+- name: Sprout Social
+  ats: greenhouse
+  board_id: sproutsocial
+- name: Standard Bots
+  ats: ashby
+  board_id: standardbots
+- name: Starburst
+  ats: greenhouse
+  board_id: starburst
+- name: StarTree
+  ats: greenhouse
+  board_id: startree
+- name: StockX
+  ats: greenhouse
+  board_id: stockx
+- name: Storyblok
+  ats: greenhouse
+  board_id: storyblok
+- name: Strava
+  ats: ashby
+  board_id: strava
+- name: Stytch
+  ats: ashby
+  board_id: stytch
+- name: Substack
+  ats: ashby
+  board_id: substack
+- name: Superpower
+  ats: ashby
+  board_id: superpower
+- name: Tastytrade
+  ats: greenhouse
+  board_id: tastytrade
+- name: Truveta
+  ats: greenhouse
+  board_id: truveta
+- name: Typeface
+  ats: greenhouse
+  board_id: typeface
+- name: UiPath
+  ats: ashby
+  board_id: uipath
+- name: Unstructured
+  ats: ashby
+  board_id: unstructured
+- name: Ursa Major
+  ats: greenhouse
+  board_id: ursamajor
+- name: Verge Genomics
+  ats: ashby
+  board_id: verge-genomics
+- name: Waabi
+  ats: lever
+  board_id: waabi
+- name: Whoop
+  ats: ashby
+  board_id: whoop
+- name: Workato
+  ats: greenhouse
+  board_id: workato
+- name: Wrike
+  ats: greenhouse
+  board_id: wrike
+- name: Writer
+  ats: ashby
+  board_id: writer
+- name: Zed Industries
+  ats: ashby
+  board_id: zed
+- name: Zilliz
+  ats: lever
+  board_id: zilliz
+- name: Zocdoc
+  ats: greenhouse
+  board_id: zocdoc
+
+# ---------------------------------------------------------------------------
+# Batch 3: companies that have no public JSON job board, reached through the
+# ATS their careers page actually redirects to. Found by fetching each careers
+# page and reading the ATS host out of the final URL / page HTML, then
+# confirming against the endpoint the scraper itself will call.
+#
+# Three were rejected here for the same reason each time -- the careers page
+# pointed at a board that belongs to someone else now: Juniper Networks
+# redirects to HPE's Workday and Niantic's to Scopely (both already in this
+# file), and Capella Space's linked Greenhouse board 404s. NetApp, Lam Research
+# and Millennium are on Eightfold, which has no scraper here yet.
+# ---------------------------------------------------------------------------
+- name: Arctic Wolf
+  ats: workday
+  url: https://arcticwolf.wd1.myworkdayjobs.com/en-US/External
+- name: Autodesk
+  ats: workday
+  url: https://autodesk.wd1.myworkdayjobs.com/en-US/Ext
+- name: Expedia Group
+  ats: workday
+  url: https://expedia.wd108.myworkdayjobs.com/en-US/search
+- name: F5
+  ats: workday
+  url: https://ffive.wd5.myworkdayjobs.com/en-US/f5jobs
+- name: Illumina
+  ats: workday
+  url: https://illumina.wd1.myworkdayjobs.com/en-US/illumina-careers
+- name: KLA
+  ats: workday
+  url: https://kla.wd1.myworkdayjobs.com/en-US/Search
+- name: SiFive
+  ats: workday
+  url: https://sifive.wd1.myworkdayjobs.com/en-US/sifivecareers
+- name: Tempus AI
+  ats: workday
+  url: https://tempus.wd5.myworkdayjobs.com/en-US/Tempus_Careers
+- name: Verily
+  ats: workday
+  url: https://verily.wd1.myworkdayjobs.com/en-US/Verily_Careers
+- name: Zendesk
+  ats: workday
+  url: https://zendesk.wd1.myworkdayjobs.com/en-US/zendesk
+# Maxar rebranded to Vantor; the Workday tenant is still `maxar`, the site is `Vantor`.
+- name: Maxar
+  ats: workday
+  url: https://maxar.wd1.myworkdayjobs.com/en-US/Vantor
+- name: StubHub
+  ats: greenhouse
+  board_id: stubhubinc
+- name: XTX Markets
+  ats: greenhouse
+  board_id: xtxmarketstechnologies
+- name: Kraken
+  ats: ashby
+  board_id: kraken
+- name: Chronosphere
+  ats: ashby
+  board_id: chronospherejobs
+- name: Clay
+  ats: ashby
+  board_id: claylabs
+# Radancy: the scraper appends /search-jobs/results itself, so `url` is the bare
+# site. Verified live -- Intuit returns 351 raw postings, Synopsys 404.
+- name: Intuit
+  ats: radancy
+  url: https://jobs.intuit.com
+  keywords:
+    - software engineer
+    - intern
+    - new grad
+    - university
+    - 2027
+- name: Synopsys
+  ats: radancy
+  url: https://careers.synopsys.com
+  keywords:
+    - software engineer
+    - intern
+    - new grad
+    - university
+    - 2027
+# Phenom sites: server-rendered search pages, driven by the playwright scraper.
+- name: eBay
+  ats: playwright
+  url:
+    - https://jobs.ebayinc.com/us/en/search-results?keywords=software%20engineer%20intern
+    - https://jobs.ebayinc.com/us/en/search-results?keywords=software%20engineer%20graduate
+- name: Yelp
+  ats: playwright
+  url:
+    - https://www.yelp.careers/us/en/search-results?keywords=software%20engineer%20intern
+    - https://www.yelp.careers/us/en/search-results?keywords=software%20engineer%20graduate
+- name: MITRE
+  ats: playwright
+  url:
+    - https://careers.mitre.org/us/en/search-results?keywords=software%20engineer%20intern
+    - https://careers.mitre.org/us/en/search-results?keywords=software%20engineer%20graduate
